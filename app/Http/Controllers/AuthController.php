@@ -93,16 +93,13 @@ class AuthController extends Controller
 
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        return Socialite::driver('google')->redirect();
     }
 
     public function handleGoogleCallback()
     {
         try {
-            $googleUser = Socialite::driver('google')
-                ->stateless()
-                ->setHttpClient(new \GuzzleHttp\Client(['verify' => false]))
-                ->user();
+            $googleUser = Socialite::driver('google')->user();
 
             $user = User::where('email', $googleUser->getEmail())->first();
             $isNewUser = false;
@@ -132,7 +129,6 @@ class AuthController extends Controller
             
             return redirect('/');
         } catch (\Exception $e) {
-            \Log::error('Google Login Error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return redirect('/login')->with('error', 'Login dengan Google gagal. Pastikan Client ID dan Secret Google telah dikonfigurasi.');
         }
     }

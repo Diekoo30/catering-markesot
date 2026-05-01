@@ -12,11 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->dropUnique('categories_slug_unique');
             $table->dropColumn('slug');
         });
         Schema::table('menu_items', function (Blueprint $table) {
-            $table->dropUnique('menu_items_slug_unique');
             $table->dropColumn('slug');
         });
     }
