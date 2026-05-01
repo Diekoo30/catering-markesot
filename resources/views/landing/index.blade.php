@@ -199,8 +199,8 @@
     });
   </script>
 @else
-  <div style="position:fixed;top:1rem;right:1rem;z-index:100;">
-    <a href="{{ route('login') }}" style="background:white;color:var(--maroon);padding:0.6rem 1.2rem;border-radius:20px;box-shadow:var(--shadow-sm);text-decoration:none;font-weight:700;font-size:0.85rem;display:inline-block;">Masuk / Daftar</a>
+  <div style="position:fixed;top:1.5rem;right:1.5rem;z-index:100;">
+    <a href="{{ route('login') }}" style="background:var(--gold, #d4af37);color:var(--maroon, #800000);border:2px solid var(--gold, #d4af37);padding:0.6rem 1.4rem;border-radius:25px;box-shadow:0 4px 12px rgba(0,0,0,0.15);text-decoration:none;font-weight:800;font-size:0.85rem;display:inline-block;transition:all 0.3s;" onmouseover="this.style.background='var(--maroon, #800000)'; this.style.color='var(--gold, #d4af37)';" onmouseout="this.style.background='var(--gold, #d4af37)'; this.style.color='var(--maroon, #800000)';">Masuk / Daftar</a>
   </div>
 @endauth
 
@@ -378,18 +378,25 @@ function toggleMenuMore() {
 <section class="cta-section">
   <h2 class="cta-title">Sudah Lapar? <em>Yuk Order!</em></h2>
   <p class="cta-sub">Jangan biarkan perut kosong mengganggu harimu. Satu klik, pesanan langsung kami proses!</p>
-  <div class="cta-btns">
-    <button class="btn-gold" style="font-size:1.05rem;padding:1.1rem 2.8rem;" onclick="openOrder()">🛒 Keranjang</button>
-    <button class="btn-dss-hero" onclick="openDSS()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);">
-      <div class="dss-sparkle">🧠</div> Masih bingung? Coba rekomendasi
-    </button>
+  <div class="cta-btns" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <button class="btn-gold" style="font-size:1.05rem;padding:1.1rem 2.8rem;" onclick="openOrder()">🛒 Keranjang</button>
+      <button class="btn-dss-hero" onclick="openDSS()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);">
+        <div class="dss-sparkle">🧠</div> Masih bingung? Coba rekomendasi
+      </button>
+    </div>
+    <a href="https://wa.me/628123480411" target="_blank" style="display:inline-flex;align-items:center;gap:0.6rem;background:transparent;border:2px solid var(--gold, #d4af37);color:var(--gold, #d4af37);padding:0.8rem 2rem;border-radius:30px;text-decoration:none;font-weight:700;font-size:1.05rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);transition:all 0.3s;" onmouseover="this.style.background='var(--gold, #d4af37)'; this.style.color='var(--maroon, #800000)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='transparent'; this.style.color='var(--gold, #d4af37)'; this.style.transform='translateY(0)';">
+      📞 Hubungi Kami
+    </a>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer class="footer">
-  <div><div class="footer-brand">MARKESOT</div><div class="footer-info">Kantin Universitas Jember<br>© 2025 Markesot. All rights reserved.</div></div>
-  <div class="footer-contact">📞 08123480411</div>
+<footer class="footer" style="display: flex; align-items: center; justify-content: flex-start; padding-bottom: 2rem;">
+  <div style="text-align: left;">
+    <div class="footer-brand">MARKESOT</div>
+    <div class="footer-info">Kantin Universitas Jember<br>© 2025 Markesot. All rights reserved.</div>
+  </div>
 </footer>
 
 <!-- FABs -->
