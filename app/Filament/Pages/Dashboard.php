@@ -16,6 +16,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             StatsOverviewWidget::class,
+            \App\Filament\Widgets\TopMenuChart::class,
             RecentOrdersWidget::class,
         ];
     }
@@ -23,5 +24,19 @@ class Dashboard extends BaseDashboard
     public function getColumns(): int | array
     {
         return 2;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('export_excel')
+                ->label('Ekspor Excel')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('success')
+                ->action(fn () => \Maatwebsite\Excel\Facades\Excel::download(
+                    new \App\Exports\OrdersExport(),
+                    'riwayat_pesanan_' . date('Y-m-d') . '.xlsx'
+                )),
+        ];
     }
 }

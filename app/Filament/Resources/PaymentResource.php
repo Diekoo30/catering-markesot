@@ -168,6 +168,7 @@ class PaymentResource extends Resource
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->paginationPageOptions([10, 25, 50, 100, 'all'])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')

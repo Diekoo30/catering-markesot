@@ -87,10 +87,6 @@ class MenuItemResource extends Resource
                 Toggle::make('is_available')
                     ->label('Tersedia')
                     ->default(true),
-
-                Toggle::make('is_featured')
-                    ->label('Unggulan')
-                    ->default(false),
             ])->columns(2),
         ]);
     }
@@ -127,12 +123,8 @@ class MenuItemResource extends Resource
                 Tables\Columns\IconColumn::make('is_available')
                     ->label('Tersedia')
                     ->boolean(),
-
-                Tables\Columns\IconColumn::make('is_featured')
-                    ->label('Unggulan')
-                    ->boolean()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->paginationPageOptions([10, 25, 50, 100, 'all'])
             ->filters([
                 Tables\Filters\SelectFilter::make('category_id')
                     ->label('Kategori')

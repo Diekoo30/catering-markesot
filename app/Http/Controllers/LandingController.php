@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\MenuItem;
+use App\Models\News;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\SettingService;
@@ -37,6 +38,7 @@ class LandingController extends Controller
                 'price'   => $q->price,
                 'cat'     => str_contains(strtolower($q->category?->name ?? ''), 'minuman') ? 'drink' : 'food',
                 'category_name' => $q->category?->name ?? 'Lainnya',
+                'cat_sort_order'=> $q->category?->sort_order ?? 999,
                 'harga'   => $notes['harga']   ?? rand(3, 5),
                 'rasa'    => $notes['rasa']    ?? rand(3, 5),
                 'sehat'   => $notes['sehat']   ?? rand(3, 5),
@@ -46,9 +48,10 @@ class LandingController extends Controller
                 'image'   => $q->image ? asset('storage/' . $q->image) : null,
                 'is_best_seller' => in_array($q->id, $bestSellerIds),
             ];
-        });
+        })->sortBy('cat_sort_order')->values();
 
         $dpPercentage = $settingService->dpPercentage();
+        $minOrderLeadTime = $settingService->minOrderLeadTime();
 
         // Hitung pesanan aktif untuk notifikasi
         $activeOrderCount = 0;
@@ -58,7 +61,34 @@ class LandingController extends Controller
                 ->count();
         }
 
-        return view('landing.index', compact('menus', 'dpPercentage', 'activeOrderCount'));
+        // Fetch operational hours and company info
+        $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+        $opHours = [];
+        foreach ($days as $day) {
+            $d = strtolower($day);
+            // Default to 'buka' for all days
+            $status = $settingService->get("op_{$d}_status", 'buka');
+            
+            if ($status === 'libur') {
+                $opHours[$day] = 'Libur';
+            } else {
+                $buka = $settingService->get("op_{$d}_buka", $d === 'minggu' ? '09:00' : '07:00');
+                $tutup = $settingService->get("op_{$d}_tutup", $d === 'minggu' ? '20:00' : '17:00');
+                
+                // Ensure format HH:MM
+                $bukaFormat = date('H:i', strtotime($buka));
+                $tutupFormat = date('H:i', strtotime($tutup));
+                
+                $opHours[$day] = "{$bukaFormat} - {$tutupFormat}";
+            }
+        }
+        $companyPhone = $settingService->get('company_phone', '08123480411');
+        $companyName = $settingService->get('company_name', 'Markesot');
+        $companyAddress = $settingService->get('company_address', '');
+
+        $newsList = News::active()->ordered()->get();
+
+        return view('landing.index', compact('menus', 'dpPercentage', 'minOrderLeadTime', 'activeOrderCount', 'opHours', 'companyPhone', 'companyName', 'companyAddress', 'newsList'));
     }
 
     public function store(Request $request, SettingService $settingService)
@@ -67,7 +97,21 @@ class LandingController extends Controller
             'customer_name'    => 'required|min:3',
             'customer_phone'   => 'required',
             'customer_address' => 'required|min:5',
-            'event_date'       => 'required|date|after_or_equal:today',
+            'event_date'       => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($settingService) {
+                    $leadMinutes = $settingService->minOrderLeadTime();
+                    $eventDate = \Carbon\Carbon::parse($value);
+                    
+                    if ($eventDate->isBefore(now()->addMinutes($leadMinutes - 2))) {
+                        $fail("Pesanan tidak dapat diproses. Minimal waktu persiapan adalah {$leadMinutes} menit dari sekarang.");
+                    }
+                    if ($eventDate->isAfter(now()->addYear())) {
+                        $fail("Waktu pesanan tidak boleh lebih dari 1 tahun dari sekarang.");
+                    }
+                },
+            ],
             'payment_method'   => 'required|in:cash,bank',
             'payment_proof'    => 'required_if:payment_method,bank|nullable|file|mimes:png,jpg,jpeg,heic,webp|max:5120',
             'items'            => 'required|array|min:1',

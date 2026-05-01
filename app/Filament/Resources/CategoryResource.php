@@ -35,16 +35,6 @@ class CategoryResource extends Resource
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
 
-                Textarea::make('description')
-                    ->label('Deskripsi')
-                    ->rows(3)
-                    ->columnSpanFull(),
-
-                TextInput::make('sort_order')
-                    ->label('Urutan Tampil')
-                    ->numeric()
-                    ->default(0),
-
                 Toggle::make('is_active')
                     ->label('Aktif')
                     ->default(true),
@@ -82,7 +72,9 @@ class CategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->reorderable('sort_order')
             ->defaultSort('sort_order')
+            ->paginationPageOptions([10, 25, 50, 100, 'all'])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Status Aktif'),

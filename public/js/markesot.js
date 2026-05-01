@@ -54,6 +54,22 @@ function renderOrder(){
     b.innerHTML=oS1();
   } else if(oStep===2) {
     b.innerHTML=oS2();
+    if (document.getElementById('custDate') && window.flatpickr) {
+        flatpickr('#custDate', {
+            enableTime: true,
+            time_24hr: true,
+            altInput: true,
+            altFormat: "d/m/Y H:i",
+            dateFormat: "Y-m-d\\TH:i",
+            locale: "id",
+            minDate: document.getElementById('custDate').getAttribute('min'),
+            maxDate: document.getElementById('custDate').getAttribute('max'),
+            onChange: function(selectedDates, dateStr) {
+                cDate = dateStr;
+                checkData();
+            }
+        });
+    }
     if (payMethod === 'bank') {
       if (bankInfoCache) {
         setTimeout(updateBankDOM, 10);
@@ -300,9 +316,16 @@ function oS2(){
   if(!cAddress && window.USER_ADDRESS) cAddress = window.USER_ADDRESS;
 
   const t=oTotal(), d=oDp();
+  const leadMins = window.MIN_ORDER_LEAD_TIME || 30;
   const now = new Date();
+  now.setMinutes(now.getMinutes() + leadMins);
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   const minDateTime = now.toISOString().slice(0,16);
+
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  maxDate.setMinutes(maxDate.getMinutes() - maxDate.getTimezoneOffset());
+  const maxDateTime = maxDate.toISOString().slice(0,16);
 
   let h = `<div class="dp-banner"><div class="dp-ico"><img src="/images/icons/info.png" class="icon-img" alt="" onerror="this.style.display='none'"></div><div class="dp-info"><h4>Kebijakan DP ${DP_PCT}%</h4><p>DP telah ditetapkan. Pelunasan saat pengambilan.</p></div><div class="dp-right"><div class="dp-num">${fmt(d)}</div><div class="dp-lbl">DP minimum</div></div></div>
   <div class="form-section">
@@ -312,7 +335,8 @@ function oS2(){
     <textarea id="custAddress" placeholder="Alamat lengkap (untuk pengambilan / pengiriman)" oninput="cAddress=this.value;checkData()" class="cust-input cust-textarea" rows="2">${cAddress}</textarea>
     
     <label class="cust-label" style="margin-top: 1.2rem;">Waktu Pesanan Dibutuhkan (Tanggal & Waktu)</label>
-    <input type="datetime-local" id="custDate" value="${cDate}" min="${minDateTime}" oninput="cDate=this.value;checkData()" class="cust-input">
+    <input type="text" id="custDate" value="${cDate}" min="${minDateTime}" max="${maxDateTime}" placeholder="Pilih Tanggal & Jam" oninput="cDate=this.value;checkData()" class="cust-input">
+    <div style="font-size:0.75rem; color:#b88a00; margin-top:4px; padding:6px 10px; background:#fffbe6; border-radius:8px; border:1px solid #ffe58f;">⏰ Minimal pemesanan <strong>${leadMins} menit</strong> sebelum waktu pesanan dibutuhkan.</div>
   </div>
   <div class="form-section-label" style="margin-top:1.4rem;margin-bottom:.7rem;">Metode Pembayaran</div>
   <div class="pay-opts">
@@ -398,7 +422,47 @@ function checkData(){
   const validAddress = cAddress.trim().length >= 5;
   const validEmail   = window.IS_LOGGED_IN ? true : cEmail.trim().length >= 5;
   const validPass    = window.IS_LOGGED_IN ? true : cPassword.trim().length >= 4;
-  const validDate    = cDate.trim().length > 0;
+  let validDate      = cDate.trim().length > 0;
+  let dateIsPast     = false;
+  let isClosed       = false;
+  let closedReason   = "";
+  
+  if (validDate) {
+      const selDate = new Date(cDate);
+      const leadMins = window.MIN_ORDER_LEAD_TIME || 30;
+      const limit = new Date();
+      limit.setMinutes(limit.getMinutes() + leadMins - 2); // 2 mins buffer
+      if (selDate < limit) {
+          validDate = false;
+          dateIsPast = true;
+      } else if (window.OP_HOURS) {
+          const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+          const dayName = days[selDate.getDay()];
+          const opStr = window.OP_HOURS[dayName];
+          if (!opStr || opStr.match(/libur|tutup/i)) {
+              validDate = false;
+              isClosed = true;
+              closedReason = `Toko libur pada hari ${dayName}. Silakan pilih hari lain.`;
+          } else if (opStr.includes('-')) {
+              const [start, end] = opStr.split('-').map(s => s.trim());
+              const [startH, startM] = start.split(':').map(Number);
+              const [endH, endM] = end.split(':').map(Number);
+              
+              const selH = selDate.getHours();
+              const selM = selDate.getMinutes();
+              const selTime = selH * 60 + selM;
+              const startTime = startH * 60 + startM;
+              const endTime = endH * 60 + endM;
+              
+              if (selTime < startTime || selTime > endTime) {
+                  validDate = false;
+                  isClosed = true;
+                  closedReason = `Pesanan diluar jam operasional. Hari ${dayName} buka jam ${start} - ${end}.`;
+              }
+          }
+      }
+  }
+
   const validProof   = payMethod === 'bank' ? !!uploaded : true;
 
   let missing = [];
@@ -407,7 +471,12 @@ function checkData(){
   if (!validEmail) missing.push("Email valid");
   if (!validPass) missing.push("Password (min. 4 karakter)");
   if (!validAddress) missing.push("Alamat Pengiriman (min. 5 huruf)");
-  if (!validDate) missing.push("Tanggal & Waktu Acara");
+  if (!validDate) {
+      const leadMins = window.MIN_ORDER_LEAD_TIME || 30;
+      if (dateIsPast) missing.push(`Waktu pesanan tidak valid. Anda harus memesan minimal ${leadMins} menit dari sekarang`);
+      else if (isClosed) missing.push(closedReason);
+      else missing.push("Tanggal & Waktu Acara");
+  }
   
   if (!payMethod) {
       missing.push("Pilih Metode Pembayaran");
@@ -459,6 +528,10 @@ function submitOrder(){
 
   fetch('/order', {
     method: 'POST',
+    headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    },
     body: fd
   })
   .then(r => r.json())
@@ -476,7 +549,11 @@ function submitOrder(){
        MENUS.forEach(m=>qty[m.id]=0);
        if (typeof renderLandingSteppers === 'function') renderLandingSteppers();
      } else if(res.errors || res.error) {
-       alert('Error: ' + JSON.stringify(res.errors || res.error));
+       let errMsg = res.error || '';
+       if (res.errors) {
+           errMsg = Object.values(res.errors).flat().join('\n');
+       }
+       alert(errMsg);
        btn.disabled = false;
        if(document.getElementById('pesanLoad')) document.getElementById('pesanLoad').style.display = 'none';
      }

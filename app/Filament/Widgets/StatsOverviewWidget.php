@@ -15,6 +15,7 @@ class StatsOverviewWidget extends BaseWidget
     {
         $totalOrders    = Order::count();
         $pendingOrders  = Order::where('status', 'pending')
+            ->where('dp_percentage', '<', 100)
             ->whereHas('payments', function ($query) {
                 $query->where('payment_method', 'transfer');
             })->count();

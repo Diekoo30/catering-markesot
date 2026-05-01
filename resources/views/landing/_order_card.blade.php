@@ -13,6 +13,7 @@
     }
     
     $isDpFlow = (!$isFullPayment && $firstPayment && $firstPayment->payment_method === 'transfer');
+    $isAdminRejection = $order->status === 'cancelled' && $order->payments->where('status', 'rejected')->isNotEmpty();
   @endphp
   <div class="order-header">
     <div>
@@ -50,6 +51,20 @@
       <span>Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
     </div>
   </div>
+
+  @if($isAdminRejection && $order->cancellation_reason)
+    <div style="margin-top: 1rem; padding: 0.75rem; background-color: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px;">
+      <div style="font-size: 0.8rem; font-weight: 700; color: #b91c1c; margin-bottom: 0.2rem;">Pesanan Ditolak oleh Admin</div>
+      <div style="font-size: 0.8rem; color: #991b1b;">Alasan: {{ $order->cancellation_reason }}</div>
+    </div>
+  @endif
+
+  @if($order->status === 'cancelled' && !$isAdminRejection && $order->cancellation_reason)
+    <div style="margin-top: 1rem; padding: 0.75rem; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px;">
+      <div style="font-size: 0.8rem; font-weight: 700; color: #4b5563; margin-bottom: 0.2rem;">Dibatalkan oleh Anda</div>
+      <div style="font-size: 0.8rem; color: #4b5563;">Alasan: {{ $order->cancellation_reason }}</div>
+    </div>
+  @endif
 
   @if($firstPayment && $firstPayment->payment_method === 'cash' && $order->status !== 'cancelled' && $order->status !== 'completed')
     <div style="margin-top: 1.2rem; text-align: right; border-top: 1px solid #f0f0f0; padding-top: 1rem; position: relative; z-index: 10;">

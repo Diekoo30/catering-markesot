@@ -2,33 +2,74 @@
 
 namespace App\Filament\Widgets;
 
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Filament\Forms\Components\Select;
+use Filament\Schemas\Schema;
+use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\ChartWidget\Concerns\HasFiltersSchema;
+use Illuminate\Support\Facades\DB;
 
 class TopMenuChart extends ChartWidget
 {
+    use HasFiltersSchema;
+
     protected ?string $heading = 'Menu Paling Laris (Per Bulan)';
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
-    protected ?string $maxHeight = '300px';
+    protected ?string $maxHeight = '400px';
 
-    public ?string $filter = null;
-
-    protected function getFilters(): ?array
+    public function filtersSchema(Schema $schema): Schema
     {
-        $months = [];
-        for ($i = 0; $i < 12; $i++) {
-            $date = now()->subMonths($i);
-            $months[$date->format('Y-m')] = $date->translatedFormat('F Y');
-        }
-        return $months;
+        return $schema->components([
+            Select::make('bulan')
+                ->label('Bulan')
+                ->options([
+                    1 => 'Januari',
+                    2 => 'Februari',
+                    3 => 'Maret',
+                    4 => 'April',
+                    5 => 'Mei',
+                    6 => 'Juni',
+                    7 => 'Juli',
+                    8 => 'Agustus',
+                    9 => 'September',
+                    10 => 'Oktober',
+                    11 => 'November',
+                    12 => 'Desember',
+                ])
+                ->default(now()->month)
+                ->selectablePlaceholder(false),
+            \Filament\Forms\Components\TextInput::make('tahun')
+                ->label('Tahun')
+                ->numeric()
+                ->default(now()->year)
+                ->extraInputAttributes([
+                    'readonly' => true,
+                    'style' => 'text-align: center; pointer-events: none;',
+                ])
+                ->prefix(new \Illuminate\Support\HtmlString('
+                    <div style="cursor:pointer; padding: 0 1rem; font-weight: bold; font-size: 1.25rem; user-select: none;" 
+                         x-on:click="$wire.set(\'filters.tahun\', Number($wire.get(\'filters.tahun\')) - 1)">
+                        -
+                    </div>
+                '))
+                ->suffix(new \Illuminate\Support\HtmlString('
+                    <div style="cursor:pointer; padding: 0 1rem; font-weight: bold; font-size: 1.25rem; user-select: none;" 
+                         x-on:click="$wire.set(\'filters.tahun\', Number($wire.get(\'filters.tahun\')) + 1)">
+                        +
+                    </div>
+                ')),
+        ]);
     }
 
     protected function getData(): array
     {
-        $activeFilter = $this->filter ?? now()->format('Y-m');
-        $year = substr($activeFilter, 0, 4);
-        $month = substr($activeFilter, 5, 2);
+        $month = !empty($this->filters['bulan']) ? (int) $this->filters['bulan'] : now()->month;
+        $year  = !empty($this->filters['tahun']) ? (int) $this->filters['tahun'] : now()->year;
+
+        $date = Carbon::create($year, $month, 1);
+        $this->heading = 'Menu Paling Laris — ' . $date->translatedFormat('F Y');
 
         $topMenus = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
@@ -45,14 +86,49 @@ class TopMenuChart extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'Total Porsi Terjual',
-                    'data' => $topMenus->pluck('total_quantity')->toArray(),
-                    'backgroundColor' => '#8B2535', // maroon light
-                    'borderColor' => '#6B1C2A', // maroon
+                    'data' => $topMenus->pluck('total_quantity')->map(fn($val) => (int) $val)->toArray(),
+                    'backgroundColor' => '#8B2535',
+                    'borderColor' => '#6B1C2A',
                     'borderWidth' => 1,
-                    'borderRadius' => 4,
+                    'borderRadius' => 6,
                 ],
             ],
             'labels' => $topMenus->pluck('menu_name')->toArray(),
+        ];
+    }
+
+    protected function getOptions(): array | RawJs | null
+    {
+        return [
+            'indexAxis' => 'y',
+            'responsive' => true,
+            'maintainAspectRatio' => false,
+            'scales' => [
+                'x' => [
+                    'beginAtZero' => true,
+                    'ticks' => [
+                        'stepSize' => 1,
+                    ],
+                    'grid' => [
+                        'display' => true,
+                    ],
+                ],
+                'y' => [
+                    'ticks' => [
+                        'font' => [
+                            'size' => 12,
+                        ],
+                    ],
+                    'grid' => [
+                        'display' => false,
+                    ],
+                ],
+            ],
+            'plugins' => [
+                'legend' => [
+                    'display' => false,
+                ],
+            ],
         ];
     }
 

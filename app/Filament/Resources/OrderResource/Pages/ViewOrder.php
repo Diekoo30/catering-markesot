@@ -27,10 +27,16 @@ class ViewOrder extends ViewRecord
         ];
     }
 
+    public function getMaxContentWidth(): \Filament\Support\Enums\Width | string | null
+    {
+        return \Filament\Support\Enums\Width::Full;
+    }
+
     public function infolist(Schema $schema): Schema
     {
-        return $schema->components([
-            \Filament\Schemas\Components\Grid::make(['default' => 1, 'md' => 3])->schema([
+        return $schema
+            ->columns(['default' => 1, 'lg' => 3])
+            ->components([
                 \Filament\Schemas\Components\Group::make([
                     Section::make('Informasi Pesanan')->schema([
                         Infolists\Components\TextEntry::make('order_number')
@@ -79,7 +85,18 @@ class ViewOrder extends ViewRecord
                                 'refunded'   => 'Direfund',
                                 default      => $state,
                             }),
-                    ])->columns(2),
+
+                        Infolists\Components\TextEntry::make('cancellation_reason')
+                            ->label(fn ($record) => 
+                                ($record->status === 'cancelled' && $record->payments->where('status', 'rejected')->isNotEmpty()) 
+                                ? 'Alasan Penolakan (Oleh Admin)' 
+                                : 'Alasan Batal (Oleh Pembeli)'
+                            )
+                            ->visible(fn ($record) => $record->status === 'cancelled')
+                            ->color('danger')
+                            ->weight('bold')
+                            ->columnSpanFull(),
+                    ])->columns(['default' => 1, 'sm' => 2]),
 
                     Section::make('Daftar Menu')->schema([
                         Infolists\Components\RepeatableEntry::make('orderItems')
@@ -92,7 +109,7 @@ class ViewOrder extends ViewRecord
                                     ->size('lg')
                                     ->columnSpanFull(),
                                 
-                                \Filament\Schemas\Components\Grid::make(3)->schema([
+                                \Filament\Schemas\Components\Grid::make(['default' => 1, 'sm' => 3])->schema([
                                     Infolists\Components\TextEntry::make('quantity')
                                         ->label('Jumlah')
                                         ->formatStateUsing(fn ($state, $record) => $state . ' ' . $record->unit),
@@ -151,8 +168,8 @@ class ViewOrder extends ViewRecord
                             ->columnSpanFull()
                             ->hidden(fn ($record) => $record->payments()->whereNotNull('proof_image')->count() === 0)
                             ->view('filament.infolists.proof-image'),
-                    ])->columns(2),
-                ])->columnSpan(['default' => 1, 'md' => 2]),
+                    ])->columns(['default' => 1, 'sm' => 2]),
+                ])->columnSpan(['default' => 1, 'lg' => 2]),
 
                 \Filament\Schemas\Components\Group::make([
                     Section::make('Data Pelanggan')->schema([
@@ -175,13 +192,16 @@ class ViewOrder extends ViewRecord
                     Section::make('Detail Acara')->schema([
                         Infolists\Components\TextEntry::make('event_date')
                             ->label('Waktu Acara (Tanggal & Jam)')
-                            ->dateTime('d M Y, H:i')
+                            ->formatStateUsing(function ($state, $record) {
+                                $date = \Carbon\Carbon::parse($state)->format('d M Y');
+                                $time = $record->event_time ? \Carbon\Carbon::parse($record->event_time)->format('H:i') : '';
+                                return $date . ($time ? ', ' . $time : '');
+                            })
                             ->icon('heroicon-o-calendar'),
                     ])->columns(1),
 
 
-                ])->columnSpan(['default' => 1, 'md' => 1]),
-            ]),
-        ]);
+                ])->columnSpan(['default' => 1, 'lg' => 1]),
+            ]);
     }
 }

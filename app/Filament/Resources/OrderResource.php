@@ -323,7 +323,12 @@ class OrderResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort(fn ($query) => $query
+                ->orderByRaw("CASE WHEN status IN ('completed', 'cancelled') THEN 1 ELSE 0 END ASC")
+                ->orderBy('event_date', 'asc')
+                ->orderBy('event_time', 'asc')
+            )
+            ->paginationPageOptions([10, 25, 50, 100, 'all'])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')

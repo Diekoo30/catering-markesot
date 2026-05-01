@@ -24,6 +24,7 @@ class ManageSettings extends Page
     // State untuk masing-masing seksi edit
     public array $editModes = [
         'dp'      => false,
+        'order'   => false,
         'company' => false,
         'bank'    => false,
         'landing' => false,
@@ -70,8 +71,16 @@ class ManageSettings extends Page
             'payment_qris_string' => $settings->get('payment_qris_string')?->value ?? '',
             'qr_payment_image' => $settings->get('qr_payment_image')?->value ?? '',
             'best_seller_count' => $settings->get('best_seller_count')?->value ?? 1,
+            'min_order_lead_time' => $settings->get('min_order_lead_time')?->value ?? '30',
             'admin_tokens'     => $adminTokensData,
         ];
+        
+        $days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+        foreach ($days as $day) {
+            $this->data["op_{$day}_status"] = $settings->get("op_{$day}_status")?->value ?? ($day === 'minggu' ? 'buka' : 'buka');
+            $this->data["op_{$day}_buka"]   = $settings->get("op_{$day}_buka")?->value ?? ($day === 'minggu' ? '09:00' : '07:00');
+            $this->data["op_{$day}_tutup"]  = $settings->get("op_{$day}_tutup")?->value ?? ($day === 'minggu' ? '20:00' : '17:00');
+        }
 
         $this->form->fill($this->data);
     }
@@ -109,6 +118,24 @@ class ManageSettings extends Page
                         $this->makeActionButtons('dp', 'Konfigurasi DP'),
                     ])->columns(1),
 
+                // ─── 1b. KONFIGURASI PESANAN ───
+                \Filament\Schemas\Components\Section::make('Konfigurasi Pesanan')
+                    ->description('Pengaturan waktu minimal persiapan pesanan.')
+                    ->icon('heroicon-o-clock')
+                    ->schema([
+                        \Filament\Forms\Components\TextInput::make('min_order_lead_time')
+                            ->label('Minimal Waktu Persiapan (Menit)')
+                            ->required()
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(1440)
+                            ->suffix('menit')
+                            ->disabled(fn () => empty($this->editModes['order']))
+                            ->helperText('Pembeli harus memesan minimal sekian menit sebelum waktu pesanan dibutuhkan. Contoh: 30, artinya harus memesan 30 menit sebelum pesanan dari pelanggan dibutuhkan.'),
+
+                        $this->makeActionButtons('order', 'Konfigurasi Pesanan'),
+                    ])->columns(1),
+
                 // ─── 2. INFORMASI PERUSAHAAN ───
                 \Filament\Schemas\Components\Section::make('Informasi Perusahaan')
                     ->icon('heroicon-o-building-office')
@@ -131,6 +158,36 @@ class ManageSettings extends Page
                             ->columnSpanFull()
                             ->disabled(fn () => empty($this->editModes['company'])),
 
+                        \Filament\Schemas\Components\Fieldset::make('Jam Operasional')
+                            ->schema(array_map(function ($day) {
+                                $d = strtolower($day);
+                                return \Filament\Schemas\Components\Fieldset::make($day)
+                                    ->schema([
+                                        \Filament\Forms\Components\Select::make("op_{$d}_status")
+                                            ->label('Status')
+                                            ->options([
+                                                'buka' => 'Buka',
+                                                'libur' => 'Libur',
+                                            ])
+                                            ->live()
+                                            ->disabled(fn () => empty($this->editModes['company'])),
+                                        \Filament\Forms\Components\TimePicker::make("op_{$d}_buka")
+                                            ->label('Jam Buka')
+                                            ->seconds(false)
+                                            ->disabled(fn () => empty($this->editModes['company']))
+                                            ->hidden(fn ($get) => $get("op_{$d}_status") !== 'buka')
+                                            ->required(fn ($get) => $get("op_{$d}_status") === 'buka'),
+                                        \Filament\Forms\Components\TimePicker::make("op_{$d}_tutup")
+                                            ->label('Jam Tutup')
+                                            ->seconds(false)
+                                            ->disabled(fn () => empty($this->editModes['company']))
+                                            ->hidden(fn ($get) => $get("op_{$d}_status") !== 'buka')
+                                            ->required(fn ($get) => $get("op_{$d}_status") === 'buka'),
+                                    ])->columns(3);
+                            }, ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']))
+                            ->columns(1)
+                            ->columnSpanFull(),
+
                         $this->makeActionButtons('company', 'Informasi Perusahaan'),
                     ])->columns(2),
 
@@ -145,6 +202,7 @@ class ManageSettings extends Page
 
                         \Filament\Forms\Components\TextInput::make('account_number')
                             ->label('Nomor Rekening')
+                            ->numeric()
                             ->maxLength(50)
                             ->disabled(fn () => empty($this->editModes['bank'])),
 
@@ -162,14 +220,41 @@ class ManageSettings extends Page
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('best_seller_count')
                             ->label('Jumlah Menu Best Seller')
-                            ->required()
                             ->numeric()
-                            ->minValue(0)
-                            ->default(1)
-                            ->disabled(fn () => empty($this->editModes['landing']))
-                            ->helperText('Tentukan berapa banyak menu yang akan ditampilkan sebagai Best Seller.'),
+                            ->disabled()
+                            ->helperText('Gunakan tombol + dan − untuk mengatur jumlah menu Best Seller.'),
 
-                        $this->makeActionButtons('landing', 'Tampilan Landing Page'),
+                        \Filament\Schemas\Components\Actions::make([
+                            \Filament\Actions\Action::make('decrease_best_seller')
+                                ->label('−')
+                                ->color('gray')
+                                ->size('lg')
+                                ->action(function () {
+                                    $current = (int) ($this->data['best_seller_count'] ?? 1);
+                                    if ($current > 0) {
+                                        $current--;
+                                        $this->data['best_seller_count'] = $current;
+                                        $this->form->fill($this->data);
+                                        Setting::updateOrCreate(['key' => 'best_seller_count'], ['value' => $current]);
+                                        Cache::forget('setting_best_seller_count');
+                                        Notification::make()->title("Best Seller: {$current} menu")->success()->send();
+                                    }
+                                }),
+
+                            \Filament\Actions\Action::make('increase_best_seller')
+                                ->label('+')
+                                ->color('gray')
+                                ->size('lg')
+                                ->action(function () {
+                                    $current = (int) ($this->data['best_seller_count'] ?? 1);
+                                    $current++;
+                                    $this->data['best_seller_count'] = $current;
+                                    $this->form->fill($this->data);
+                                    Setting::updateOrCreate(['key' => 'best_seller_count'], ['value' => $current]);
+                                    Cache::forget('setting_best_seller_count');
+                                    Notification::make()->title("Best Seller: {$current} menu")->success()->send();
+                                }),
+                        ])->columnSpanFull(),
                     ])->columns(1),
 
                 // ─── 5. PASSWORD REGISTRASI ADMIN ───
@@ -228,17 +313,17 @@ class ManageSettings extends Page
                                 ->label('Simpan')
                                 ->color('primary')
                                 ->icon('heroicon-m-check')
-                                ->action('save')
+                                ->requiresConfirmation()
+                                ->modalHeading('Simpan Perubahan')
+                                ->modalDescription('Apakah Anda yakin ingin menyimpan perubahan Password Registrasi Admin?')
+                                ->modalSubmitActionLabel('Ya, Simpan')
+                                ->action(fn () => $this->save())
                                 ->hidden(fn () => empty($this->editModes['admin'])),
 
                             \Filament\Actions\Action::make('cancel_admin')
                                 ->label('Batal')
                                 ->color('danger')
                                 ->icon('heroicon-m-x-mark')
-                                ->requiresConfirmation()
-                                ->modalHeading('Batal Mengubah Password')
-                                ->modalDescription('Apakah anda tidak jadi merubah atau menambahkan password admin baru?')
-                                ->modalSubmitActionLabel('Ya, Batal')
                                 ->action(function () {
                                     $this->editModes['admin'] = false;
                                     $this->form->fill($this->data);
@@ -253,8 +338,23 @@ class ManageSettings extends Page
     /**
      * Helper untuk membuat tombol Edit/Simpan/Batal per Section
      */
-    protected function makeActionButtons(string $key, string $label, int $columnSpan = 1): \Filament\Schemas\Components\Actions
+    protected function makeActionButtons(string $key, string $label, int $columnSpan = 1, bool $confirmSave = true): \Filament\Schemas\Components\Actions
     {
+        $saveAction = \Filament\Actions\Action::make("save_{$key}")
+            ->label('Simpan')
+            ->color('primary')
+            ->icon('heroicon-m-check')
+            ->action(fn () => $this->save())
+            ->hidden(fn () => empty($this->editModes[$key]));
+
+        if ($confirmSave) {
+            $saveAction = $saveAction
+                ->requiresConfirmation()
+                ->modalHeading('Simpan Perubahan')
+                ->modalDescription("Apakah Anda yakin ingin menyimpan perubahan {$label}?")
+                ->modalSubmitActionLabel('Ya, Simpan');
+        }
+
         return \Filament\Schemas\Components\Actions::make([
             \Filament\Actions\Action::make("edit_{$key}")
                 ->label('Edit')
@@ -263,12 +363,7 @@ class ManageSettings extends Page
                 ->action(fn () => $this->editModes[$key] = true)
                 ->hidden(fn () => !empty($this->editModes[$key])),
 
-            \Filament\Actions\Action::make("save_{$key}")
-                ->label('Simpan')
-                ->color('primary')
-                ->icon('heroicon-m-check')
-                ->action('save')
-                ->hidden(fn () => empty($this->editModes[$key])),
+            $saveAction,
 
             \Filament\Actions\Action::make("cancel_{$key}")
                 ->label('Batal')
@@ -349,6 +444,7 @@ class ManageSettings extends Page
         $this->mount();
         $this->editModes = [
             'dp'      => false,
+            'order'   => false,
             'company' => false,
             'bank'    => false,
             'landing' => false,

@@ -60,8 +60,9 @@ class RecentOrdersWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
                     ->dateTime('d M Y H:i'),
-            ])
-            ->filters([
+        ])
+        ->paginationPageOptions([10, 25, 50, 100, 'all'])
+        ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status Pesanan')
                     ->options([

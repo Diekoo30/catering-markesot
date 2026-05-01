@@ -56,6 +56,14 @@ class SettingService
     }
 
     /**
+     * Ambil minimal waktu persiapan pesanan (dalam menit, default 30).
+     */
+    public function minOrderLeadTime(): int
+    {
+        return (int) $this->get('min_order_lead_time', 30);
+    }
+
+    /**
      * Ambil informasi rekening bank.
      */
     public function bankInfo(): array
