@@ -4,13 +4,14 @@ namespace Database\Seeders;
 
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class SettingSeeder extends Seeder
 {
     public function run(): void
     {
         $settings = [
-            // DP
+            // ── Pengaturan Pesanan ──
             [
                 'key'         => 'dp_percentage',
                 'value'       => '50',
@@ -18,7 +19,15 @@ class SettingSeeder extends Seeder
                 'label'       => 'Persentase DP (%)',
                 'description' => 'Persentase Down Payment yang harus dibayar saat pemesanan',
             ],
-            // Info Perusahaan
+            [
+                'key'         => 'min_order_lead_time',
+                'value'       => '30',
+                'type'        => 'number',
+                'label'       => 'Minimal Waktu Pemesanan (menit)',
+                'description' => 'Waktu minimum (dalam menit) sebelum pesanan bisa diproses',
+            ],
+
+            // ── Info Perusahaan ──
             [
                 'key'         => 'company_name',
                 'value'       => 'Catering Markesot',
@@ -40,7 +49,8 @@ class SettingSeeder extends Seeder
                 'label'       => 'Alamat',
                 'description' => 'Alamat lengkap perusahaan catering',
             ],
-            // Rekening Bank
+
+            // ── Rekening Bank ──
             [
                 'key'         => 'bank_name',
                 'value'       => 'BCA',
@@ -62,13 +72,28 @@ class SettingSeeder extends Seeder
                 'label'       => 'Nama Pemilik Rekening',
                 'description' => 'Nama pemilik rekening bank',
             ],
-            // QR Payment
+
+            // ── QR Payment ──
             [
                 'key'         => 'qr_payment_image',
                 'value'       => '',
                 'type'        => 'image',
                 'label'       => 'QR Code Pembayaran',
                 'description' => 'Gambar QR Code untuk pembayaran (QRIS, dll)',
+            ],
+
+            // ── Admin Token (Keamanan) ──
+            [
+                'key'         => 'admin_tokens',
+                'value'       => json_encode([
+                    [
+                        'password' => 'admin123',
+                        'token'    => strtoupper(Str::random(6)),
+                    ],
+                ]),
+                'type'        => 'json',
+                'label'       => 'Password & Token Admin',
+                'description' => 'Daftar password admin dan token verifikasi untuk registrasi admin baru',
             ],
         ];
 
