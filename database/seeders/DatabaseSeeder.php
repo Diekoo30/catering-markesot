@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,   // 1 akun admin default
             SettingSeeder::class,     // Semua pengaturan sistem
+            CategorySeeder::class,    // 5 kategori menu
         ]);
 
         $this->command->info(str_repeat('-', 50));
