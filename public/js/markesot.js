@@ -9,7 +9,7 @@ const CRITERIA=[
   {id:'kenyang',name:'Bikin Kenyang',     icon:'💪',desc:'Porsi memuaskan'},
 ];
 const PAIRS=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
-const fmt=n=>'Rp '+n.toLocaleString('id-ID');
+const fmt=n=>'Rp.'+new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 
 /* ═══════════════════════════════════════
    ORDER SYSTEM

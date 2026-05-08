@@ -40,7 +40,7 @@
     @foreach($order->orderItems as $item)
       <div class="item-row">
         <span>{{ $item->menu_name }} ×{{ $item->quantity }}</span>
-        <span>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+        <span>Rp.{{ number_format($item->subtotal, 2, ',', '.') }}</span>
       </div>
     @endforeach
     <div class="total-row">
@@ -48,7 +48,7 @@
         <span>Total Bayar</span>
         <span style="font-size: 0.75rem; color: var(--text-light); font-weight: 500; margin-top: 2px;">Metode: {{ $paymentLabel }}</span>
       </div>
-      <span>Rp {{ number_format($order->total_amount, 0, ',', '.') }}</span>
+      <span>Rp.{{ number_format($order->total_amount, 2, ',', '.') }}</span>
     </div>
   </div>
 

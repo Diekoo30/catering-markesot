@@ -22,7 +22,7 @@ class CategoryResource extends Resource
     protected static ?string $navigationLabel = 'Kategori Menu';
     protected static ?string $modelLabel = 'Kategori';
     protected static ?string $pluralModelLabel = 'Kategori';
-    protected static string|\UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|\UnitEnum|null $navigationGroup = 'Kelola Data';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema

@@ -26,7 +26,7 @@ class MenuItemResource extends Resource
     protected static ?string $navigationLabel = 'Menu Makanan';
     protected static ?string $modelLabel = 'Menu';
     protected static ?string $pluralModelLabel = 'Menu Makanan';
-    protected static string|\UnitEnum|null $navigationGroup = 'Master Data';
+    protected static string|\UnitEnum|null $navigationGroup = 'Kelola Data';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema

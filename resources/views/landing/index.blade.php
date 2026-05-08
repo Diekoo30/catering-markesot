@@ -121,6 +121,7 @@
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 2px 8px rgba(128,0,0,0.25);
+    touch-action: manipulation;
 }
 .add-btn-init:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(128,0,0,0.35); }
 .add-btn-init:active { transform: scale(0.92); }
@@ -133,6 +134,7 @@
     width: 26px; height: 100%; border: none; font-weight: 700;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     font-size: 1rem; transition: background 0.15s;
+    touch-action: manipulation;
 }
 .st-minus { background: #fff; color: var(--maroon, #800000); }
 .st-minus:hover { background: #fef2f2; }
@@ -141,6 +143,11 @@
 .qty-display {
     min-width: 22px; text-align: center;
     font-weight: 800; font-size: 0.9rem; color: #333;
+}
+
+/* ── Prevent double-tap zoom on all interactive elements ── */
+button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-btn {
+    touch-action: manipulation;
 }
 
 /* ── Responsive ── */
@@ -283,7 +290,7 @@
               <div class="m-card-name">{{ $menu['name'] }}</div>
               <div class="m-card-desc">{{ Str::limit($menu['desc'], 55) }}</div>
               <div class="m-card-bottom">
-                <div class="m-card-price">Rp {{ number_format($menu['price'], 0, ',', '.') }}</div>
+                <div class="m-card-price">Rp.{{ number_format($menu['price'], 2, ',', '.') }}</div>
                 <div style="display:flex; gap:6px; align-items:center; width:100%; margin-top:0.4rem;">
                   <button class="btn-detail" onclick="openMenuDetail({{ $menu['id'] }})" style="background:transparent; border:1px solid var(--maroon); color:var(--maroon); flex:1; width:100%; height:32px; display:flex; align-items:center; justify-content:center; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='var(--maroon)'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='var(--maroon)';">Detail</button>
                   <div class="landing-stepper" id="stepper-{{ $menu['id'] }}">

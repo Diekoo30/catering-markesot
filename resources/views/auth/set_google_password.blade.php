@@ -6,6 +6,7 @@
 <title>Atur Password — Markesot</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="{{ asset('css/markesot.css') }}" rel="stylesheet">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
   body {
     background: var(--bg);
@@ -96,6 +97,79 @@
     margin-top: 0.3rem;
     display: block;
   }
+  .alert {
+    padding: 1rem;
+    background: #fdf4ec;
+    color: var(--maroon);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  /* ── Token Modal ── */
+  .token-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+  }
+  .token-overlay.active { display: flex; }
+  .token-modal {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: fadeIn 0.25s ease;
+    text-align: center;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+  .token-modal-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .token-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--maroon);
+    margin-bottom: 0.3rem;
+  }
+  .token-modal-sub {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+  }
+  .token-modal .form-control { margin-bottom: 0.5rem; }
+  .token-error {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-bottom: 0.8rem;
+    display: none;
+  }
+  .token-btns {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .token-btns button {
+    flex: 1;
+    padding: 0.7rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: 0.2s;
+  }
+  .btn-token-cancel { background: #f0f0f0; color: var(--text-light); }
+  .btn-token-cancel:hover { background: #e5e5e5; }
+  .btn-token-confirm { background: var(--maroon); color: white; }
+  .btn-token-confirm:hover { opacity: 0.9; }
 </style>
 </head>
 <body>
@@ -104,8 +178,19 @@
   <div class="card-title">Atur Password Baru</div>
   <div class="card-sub">Karena Anda baru saja mendaftar menggunakan Google, silakan atur password untuk akun Anda terlebih dahulu.</div>
 
-  <form action="{{ route('google.set-password.post') }}" method="POST">
+  @if($errors->any())
+    <div class="alert">
+      <ul style="margin:0;padding-left:1.2rem;">
+        @foreach($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+
+  <form id="googlePasswordForm" action="{{ route('google.set-password.post') }}" method="POST">
     @csrf
+    <input type="hidden" name="admin_token" id="adminTokenField" value="">
     
     <div class="form-group">
       <label for="password">Password</label>
@@ -156,6 +241,21 @@
   </form>
 </div>
 
+<!-- ═══ Token Modal ═══ -->
+<div class="token-overlay" id="tokenOverlay">
+  <div class="token-modal">
+    <div class="token-modal-icon">🔑</div>
+    <div class="token-modal-title">Verifikasi Admin</div>
+    <div class="token-modal-sub">Password yang Anda masukkan terdeteksi sebagai <strong>Password Admin</strong>.<br>Masukkan <strong>Token Verifikasi</strong> yang terdaftar di panel admin untuk melanjutkan sebagai Admin.</div>
+    <input type="text" class="form-control" id="tokenInput" placeholder="Masukkan token verifikasi..." style="text-transform:uppercase;letter-spacing:2px;font-weight:700;text-align:center;">
+    <div class="token-error" id="tokenError">Token tidak valid. Silakan coba lagi.</div>
+    <div class="token-btns">
+      <button class="btn-token-cancel" onclick="closeTokenModal()">Lanjut Sebagai User</button>
+      <button class="btn-token-confirm" onclick="submitToken()">Konfirmasi Admin</button>
+    </div>
+  </div>
+</div>
+
 <script>
 function togglePassword(btn) {
   const wrapper = btn.closest('.password-wrapper');
@@ -174,6 +274,91 @@ function togglePassword(btn) {
     </svg>`;
   }
 }
+
+// ── Token modal logic ──
+const googlePasswordForm = document.getElementById('googlePasswordForm');
+let skipTokenCheck = false;
+
+googlePasswordForm.addEventListener('submit', async function(e) {
+  // Jika sudah diset skip (user pilih lanjut sebagai user), submit langsung
+  if (skipTokenCheck) {
+    skipTokenCheck = false;
+    return;
+  }
+
+  // Jika token sudah dikonfirmasi via popup, submit langsung
+  if (document.getElementById('adminTokenField').value) {
+    return;
+  }
+
+  const pwd = document.getElementById('password').value;
+  const pwdConfirm = document.getElementById('password_confirmation').value;
+
+  // Cek apakah password cocok & konfirmasi sama
+  if (pwd.length >= 4 && pwd === pwdConfirm) {
+    e.preventDefault();
+    
+    // Cek ke server apakah password = password admin
+    try {
+      const res = await fetch('{{ route("check.admin.password") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify({ password: pwd }),
+      });
+      const data = await res.json();
+      
+      if (data.is_token) {
+        // Password = password admin → munculkan popup minta token
+        openTokenModal();
+      } else {
+        // Password biasa → submit langsung
+        googlePasswordForm.submit();
+      }
+    } catch (err) {
+      googlePasswordForm.submit();
+    }
+  }
+});
+
+function openTokenModal() {
+  document.getElementById('tokenOverlay').classList.add('active');
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('tokenError').style.display = 'none';
+  setTimeout(() => document.getElementById('tokenInput').focus(), 100);
+}
+
+function closeTokenModal() {
+  // User memilih lanjut sebagai User biasa → submit tanpa token
+  document.getElementById('tokenOverlay').classList.remove('active');
+  document.getElementById('adminTokenField').value = '';
+  skipTokenCheck = true;
+  googlePasswordForm.submit();
+}
+
+function submitToken() {
+  const token = document.getElementById('tokenInput').value.trim().toUpperCase();
+  if (!token) {
+    document.getElementById('tokenError').textContent = 'Token tidak boleh kosong.';
+    document.getElementById('tokenError').style.display = 'block';
+    return;
+  }
+  
+  // Set token dan submit form
+  document.getElementById('adminTokenField').value = token;
+  document.getElementById('tokenOverlay').classList.remove('active');
+  googlePasswordForm.submit();
+}
+
+// Enter key di token input
+document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submitToken();
+  }
+});
 </script>
 
 </body>

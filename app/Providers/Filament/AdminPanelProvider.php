@@ -44,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make('Transaksi'),
-                NavigationGroup::make('Master Data'),
+                NavigationGroup::make('Kelola Data'),
                 NavigationGroup::make('Sistem'),
             ])
             ->middleware([

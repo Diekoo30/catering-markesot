@@ -177,11 +177,42 @@ class AuthController extends Controller
     public function setGooglePassword(Request $request)
     {
         $request->validate([
-            'password' => 'required|string|min:4|confirmed',
+            'password'    => 'required|string|min:4|confirmed',
+            'admin_token' => 'nullable|string',
         ]);
 
         $user = Auth::user();
-        $user->update(['password' => bcrypt($request->password)]);
+        $adminEntries = $this->getAdminEntries();
+        $isAdmin = false;
+
+        // Cek apakah password cocok dengan salah satu password admin
+        $matchedEntry = null;
+        foreach ($adminEntries as $entry) {
+            if ($entry['password'] === $request->password) {
+                $matchedEntry = $entry;
+                break;
+            }
+        }
+
+        if ($matchedEntry) {
+            // Password cocok → cek token dari popup
+            $submittedToken = $request->admin_token ?? '';
+            if ($submittedToken && $submittedToken === $matchedEntry['token']) {
+                $isAdmin = true;
+            } elseif ($submittedToken && $submittedToken !== $matchedEntry['token']) {
+                return back()->withErrors(['admin_token' => 'Token verifikasi tidak valid.'])->withInput();
+            }
+            // Jika submittedToken kosong, user memilih daftar sebagai user biasa
+        }
+
+        $user->update([
+            'password' => bcrypt($request->password),
+            'role'     => $isAdmin ? 'admin' : $user->role,
+        ]);
+
+        if ($isAdmin) {
+            return redirect('/admin')->with('success', 'Password berhasil diatur! Selamat datang, Admin.');
+        }
 
         return redirect('/')->with('success', 'Password berhasil diatur!');
     }
