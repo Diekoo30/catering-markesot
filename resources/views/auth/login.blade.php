@@ -246,6 +246,9 @@
   @if(session('error'))
     <div class="alert">{{ session('error') }}</div>
   @endif
+  @if(session('success'))
+    <div class="alert" style="background:#ecfdf5;color:#065f46;border:1px solid #6ee7b7;">{{ session('success') }}</div>
+  @endif
   @if($errors->any())
     <div class="alert">
       <ul style="margin:0;padding-left:1.2rem;">
@@ -287,8 +290,11 @@
           </button>
         </div>
       </div>
-      <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;">
-        <input type="checkbox" name="remember" id="remember"> <label for="remember" style="margin:0;font-weight:400;">Ingat saya</label>
+      <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;font-size:0.85rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <input type="checkbox" name="remember" id="remember"> <label for="remember" style="margin:0;font-weight:400;">Ingat saya</label>
+        </div>
+        <a href="{{ route('forgot.password') }}" style="color:var(--maroon);font-weight:600;text-decoration:none;font-size:0.82rem;">Lupa Password?</a>
       </div>
       <button type="submit" class="btn-primary" style="width:100%;margin-top:0.5rem;">Masuk</button>
     </form>

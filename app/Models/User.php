@@ -34,6 +34,8 @@ class User extends Authenticatable implements FilamentUser
         'address',
         'google_id',
         'role',
+        'otp_code',
+        'otp_expires_at',
     ];
 
     /**

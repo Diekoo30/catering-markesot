@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendOtpMail;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -260,5 +262,106 @@ class AuthController extends Controller
             }
         }
         return $result;
+    }
+
+    // ─── Lupa Password (OTP via Email) ───────────────────────────────────────
+
+    public function showForgotPassword(Request $request)
+    {
+        $step = $request->session()->get('fp_step', 1);
+        $email = $request->session()->get('fp_email', '');
+        $otp = $request->session()->get('fp_otp', '');
+
+        return view('auth.forgot_password', compact('step', 'email', 'otp'));
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'Email tidak terdaftar.'])->withInput();
+        }
+
+        // Generate OTP 6 digit
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $user->update([
+            'otp_code'       => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
+        ]);
+
+        // Kirim email OTP
+        try {
+            Mail::to($user->email)->send(new SendOtpMail($otp, $user->name));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal mengirim email. Pastikan konfigurasi SMTP sudah benar.')->withInput();
+        }
+
+        $request->session()->put('fp_step', 2);
+        $request->session()->put('fp_email', $request->email);
+
+        return redirect()->route('forgot.password')->with('success', 'Kode OTP telah dikirim ke email Anda.');
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'otp'   => 'required|string|size:6',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || $user->otp_code !== $request->otp) {
+            $request->session()->put('fp_step', 2);
+            $request->session()->put('fp_email', $request->email);
+            return redirect()->route('forgot.password')->with('error', 'Kode OTP tidak valid.');
+        }
+
+        if (now()->greaterThan($user->otp_expires_at)) {
+            $request->session()->put('fp_step', 2);
+            $request->session()->put('fp_email', $request->email);
+            return redirect()->route('forgot.password')->with('error', 'Kode OTP sudah kedaluwarsa. Silakan kirim ulang.');
+        }
+
+        $request->session()->put('fp_step', 3);
+        $request->session()->put('fp_otp', $request->otp);
+
+        return redirect()->route('forgot.password');
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'otp'      => 'required|string|size:6',
+            'password' => 'required|string|min:4|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || $user->otp_code !== $request->otp) {
+            return redirect()->route('forgot.password')->with('error', 'Sesi tidak valid. Silakan ulangi proses.');
+        }
+
+        if (now()->greaterThan($user->otp_expires_at)) {
+            return redirect()->route('forgot.password')->with('error', 'Kode OTP sudah kedaluwarsa. Silakan ulangi.');
+        }
+
+        $user->update([
+            'password'       => bcrypt($request->password),
+            'otp_code'       => null,
+            'otp_expires_at' => null,
+        ]);
+
+        // Clear session
+        $request->session()->forget(['fp_step', 'fp_email', 'fp_otp']);
+
+        return redirect()->route('login')->with('success', 'Password berhasil direset! Silakan login dengan password baru.');
     }
 }

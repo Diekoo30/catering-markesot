@@ -331,7 +331,7 @@ function oS2(){
   <div class="form-section">
     <div class="form-section-label">Data Pemesan</div>
     <input type="text" id="custName" placeholder="Nama Lengkap (min. 3 karakter)" value="${cName}" oninput="cName=this.value;checkData()" class="cust-input">
-    <input type="tel" id="custPhone" placeholder="No. WhatsApp (contoh: 08123...)" value="${cPhone}" oninput="cPhone=this.value;checkData()" class="cust-input">
+    <input type="tel" id="custPhone" placeholder="No. WhatsApp (contoh: 08123...)" value="${cPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,'');cPhone=this.value;checkData()" class="cust-input" inputmode="numeric" pattern="[0-9]*">
     <textarea id="custAddress" placeholder="Alamat lengkap (untuk pengambilan / pengiriman)" oninput="cAddress=this.value;checkData()" class="cust-input cust-textarea" rows="2">${cAddress}</textarea>
     
     <label class="cust-label" style="margin-top: 1.2rem;">Waktu Pesanan Dibutuhkan (Tanggal & Waktu)</label>

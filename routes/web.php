@@ -26,3 +26,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/auth/google/set-password', [AuthController::class, 'setGooglePassword'])->name('google.set-password.post');
 });
 
+// Lupa Password (OTP)
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('forgot.password');
+Route::post('/forgot-password/send', [AuthController::class, 'sendOtp'])->name('forgot.password.send');
+Route::post('/forgot-password/verify', [AuthController::class, 'verifyOtp'])->name('forgot.password.verify');
+Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword'])->name('forgot.password.reset');
+

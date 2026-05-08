@@ -474,7 +474,19 @@ class OrderResource extends Resource
                     ->visible(fn (Order $record) => in_array($record->status, ['confirmed', 'dp_paid']))
                     ->action(function (Order $record) {
                         $record->update(['status' => 'completed']);
-                        Notification::make()->title('Pesanan ditandai selesai!')->success()->send();
+
+                        // Kirim email notifikasi ke pelanggan
+                        if ($record->customer_email) {
+                            try {
+                                \Illuminate\Support\Facades\Mail::to($record->customer_email)
+                                    ->send(new \App\Mail\OrderCompletedMail($record));
+                            } catch (\Exception $e) {
+                                Notification::make()->title('Pesanan selesai, tapi gagal mengirim email ke pelanggan.')->warning()->send();
+                                return;
+                            }
+                        }
+
+                        Notification::make()->title('Pesanan ditandai selesai! Email notifikasi terkirim.')->success()->send();
                     }),
             ])
             ->bulkActions([

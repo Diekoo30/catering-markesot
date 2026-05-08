@@ -369,20 +369,6 @@ function toggleMenuMore() {
   </div>
 </section>
 
-<!-- WHY US -->
-<section class="why-section">
-  <div class="section-head sr">
-    <div class="section-chip">✦ Mengapa Markesot ✦</div>
-    <h2 class="section-title">Lebih dari Sekadar <em>Makan Siang</em></h2>
-    <div class="section-rule"></div>
-  </div>
-  <div class="why-grid">
-    <div class="why-card sr"><div class="why-icon">🌿</div><div class="why-title">Bahan Segar Setiap Hari</div><div class="why-desc">Bahan dipilih setiap pagi dari pasar lokal untuk kesegaran dan cita rasa terbaik.</div></div>
-    <div class="why-card sr" style="transition-delay:.1s"><div class="why-icon">👨‍🍳</div><div class="why-title">Masak dengan Hati</div><div class="why-desc">Dimasak to order dengan bumbu rempah asli — bukan instan, bukan frozen.</div></div>
-    <div class="why-card sr" style="transition-delay:.2s"><div class="why-icon">✅</div><div class="why-title">100% Halal</div><div class="why-desc">Semua bahan dan proses memasak terjamin halal. Nikmati dengan tenang.</div></div>
-    <div class="why-card sr" style="transition-delay:.3s"><div class="why-icon">⚡</div><div class="why-title">Penyajian Cepat</div><div class="why-desc">Pesanan diproses cepat tanpa mengorbankan kualitas dan kehangatan hidangan.</div></div>
-  </div>
-</section>
 
 @if($newsList->count() > 0)
 <!-- BERITA & KEGIATAN -->
@@ -400,11 +386,14 @@ function toggleMenuMore() {
         @if($news->image)
         <div class="news-card-img" style="background-image:url('{{ asset('storage/' . $news->image) }}');"></div>
         @else
-        <div class="news-card-img" style="background:linear-gradient(135deg, var(--maroon), #b22222); display:flex; align-items:center; justify-content:center; color:white; font-size:3rem;">📰</div>
+        <div class="news-card-img" style="background:linear-gradient(135deg, var(--maroon), #b22222); display:flex; align-items:center; justify-content:center; color:white; font-size:3rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="white"><path d="M160-200q-33 0-56.5-23.5T80-280v-400q0-33 23.5-56.5T160-760h640q33 0 56.5 23.5T880-680v400q0 33-23.5 56.5T800-200H160Zm0-80h640v-400H160v400Zm40-40h560L620-520 510-380l-70-86-240 306Zm-40 40v-400 400Z"/></svg>
+        </div>
         @endif
         <div class="news-card-body">
           <div class="news-card-title">{{ $news->title }}</div>
           <div class="news-card-desc">{{ $news->description }}</div>
+          <button class="news-detail-btn" onclick="openNewsDetail({{ $news->id }}, '{{ addslashes($news->title) }}', `{{ addslashes($news->description) }}`, '{{ $news->image ? asset('storage/' . $news->image) : '' }}', '{{ $news->created_at->translatedFormat('d F Y') }}')">Detail</button>
         </div>
       </div>
       @endforeach
@@ -440,6 +429,8 @@ function toggleMenuMore() {
   overflow: hidden;
   transition: all 0.3s ease;
   border: 1px solid rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
 }
 .news-card:hover {
   transform: translateY(-8px);
@@ -454,6 +445,9 @@ function toggleMenuMore() {
 }
 .news-card-body {
   padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .news-card-title {
   font-weight: 800;
@@ -474,8 +468,127 @@ function toggleMenuMore() {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex: 1;
+}
+.news-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  padding: 0.5rem 1.4rem;
+  background: transparent;
+  border: 1.5px solid var(--maroon);
+  color: var(--maroon);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.news-detail-btn:hover {
+  background: var(--maroon);
+  color: white;
+}
+
+/* News Detail Modal */
+.news-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+}
+.news-modal-overlay.active {
+  display: flex;
+  animation: fadeIn 0.25s ease;
+}
+.news-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: slideUp 0.3s ease;
+}
+.news-modal-img {
+  width: 100%;
+  height: 260px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 20px 20px 0 0;
+  position: relative;
+}
+.news-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  backdrop-filter: blur(4px);
+}
+.news-modal-close:hover { background: rgba(0,0,0,0.75); }
+.news-modal-body {
+  padding: 1.8rem;
+}
+.news-modal-date {
+  font-size: 0.78rem;
+  color: var(--maroon);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.news-modal-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+.news-modal-desc {
+  font-size: 0.92rem;
+  color: #555;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(30px); }
+  to { opacity:1; transform:translateY(0); }
 }
 </style>
+
+<!-- News Detail Modal -->
+<div class="news-modal-overlay" id="newsModal" onclick="if(event.target===this)closeNewsDetail()">
+  <div class="news-modal">
+    <div class="news-modal-img" id="newsModalImg">
+      <button class="news-modal-close" onclick="closeNewsDetail()">
+        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="white"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+      </button>
+    </div>
+    <div class="news-modal-body">
+      <div class="news-modal-date" id="newsModalDate"></div>
+      <div class="news-modal-title" id="newsModalTitle"></div>
+      <div class="news-modal-desc" id="newsModalDesc"></div>
+    </div>
+  </div>
+</div>
 
 <script>
 (function() {
@@ -509,6 +622,29 @@ function toggleMenuMore() {
     });
   }
 })();
+
+function openNewsDetail(id, title, desc, img, date) {
+  document.getElementById('newsModalTitle').textContent = title;
+  document.getElementById('newsModalDesc').textContent = desc;
+  document.getElementById('newsModalDate').textContent = date;
+
+  const imgEl = document.getElementById('newsModalImg');
+  if (img) {
+    imgEl.style.backgroundImage = `url('${img}')`;
+    imgEl.style.display = 'block';
+  } else {
+    imgEl.style.backgroundImage = 'linear-gradient(135deg, #800000, #b22222)';
+    imgEl.style.display = 'block';
+  }
+
+  document.getElementById('newsModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNewsDetail() {
+  document.getElementById('newsModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
 </script>
 @endif
 
