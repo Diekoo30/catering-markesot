@@ -23,15 +23,15 @@
     </div>
     <div class="status-badge status-{{ $order->status }}">
       @if($order->status == 'pending')
-        ⏳ Nunggu Verifikasi
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Nunggu Verifikasi
       @elseif($order->status == 'dp_paid')
-        💳 DP Diterima
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg> DP Diterima
       @elseif($order->status == 'confirmed')
-        👨‍🍳 Sedang Dimasak
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sedang Dimasak
       @elseif($order->status == 'completed')
-        ✅ Selesai
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Selesai
       @else
-        ❌ Dibatalkan
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> Dibatalkan
       @endif
     </div>
   </div>

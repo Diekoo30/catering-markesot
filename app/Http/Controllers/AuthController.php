@@ -43,15 +43,14 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name'                  => 'required|string|max:255|unique:users,name',
+            'name'                  => 'required|string|max:255',
             'phone'                 => 'required|string|max:20',
             'address'               => 'required|string',
             'email'                 => 'required|string|email|max:255|unique:users,email',
             'password'              => 'required|string|min:4|confirmed',
             'admin_token'           => 'nullable|string',
         ], [
-            'name.unique'  => 'nama atau akun sudah terdaftar',
-            'email.unique' => 'nama atau akun sudah terdaftar',
+            'email.unique' => 'email atau akun sudah terdaftar',
         ]);
 
         $adminEntries = $this->getAdminEntries();
@@ -108,7 +107,7 @@ class AuthController extends Controller
 
             if (!$user) {
                 $user = User::create([
-                    'name'      => $googleUser->getName(),
+                    'name'      => $googleUser->getName() ?? 'User',
                     'email'     => $googleUser->getEmail(),
                     'google_id' => $googleUser->getId(),
                     'password'  => bcrypt(str()->random(16)),
@@ -317,7 +316,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || $user->otp_code !== $request->otp) {
+        if (!$user || (string) $user->otp_code !== (string) $request->otp) {
             $request->session()->put('fp_step', 2);
             $request->session()->put('fp_email', $request->email);
             return redirect()->route('forgot.password')->with('error', 'Kode OTP tidak valid.');
@@ -345,7 +344,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || $user->otp_code !== $request->otp) {
+        if (!$user || (string) $user->otp_code !== (string) $request->otp) {
             return redirect()->route('forgot.password')->with('error', 'Sesi tidak valid. Silakan ulangi proses.');
         }
 

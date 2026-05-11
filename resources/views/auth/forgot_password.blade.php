@@ -342,5 +342,32 @@ otpInputs.forEach((inp, idx) => {
   });
 });
 </script>
+<style>
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+@keyframes dash {
+  0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; }
+  100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; }
+}
+</style>
+<script>
+document.querySelectorAll('form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      if (submitBtn.disabled && submitBtn.id !== 'verifyBtn') { // exception for disabled logic in verify btn
+        e.preventDefault();
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.dataset.originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50" style="width:20px;height:20px;animation:rotate 2s linear infinite;margin-right:8px;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray:1,200;stroke-dashoffset:0;animation:dash 1.5s ease-in-out infinite;stroke-linecap:round;"></circle></svg> Memproses...';
+      submitBtn.style.display = 'flex';
+      submitBtn.style.alignItems = 'center';
+      submitBtn.style.justifyContent = 'center';
+    }
+  });
+});
+</script>
 </body>
 </html>

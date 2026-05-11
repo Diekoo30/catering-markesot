@@ -306,24 +306,24 @@
       <input type="hidden" name="admin_token" id="adminTokenField" value="">
       <div class="form-group">
         <label>Nama Lengkap</label>
-        <input type="text" name="name" class="form-control" required value="{{ old('name') }}">
+        <input type="text" name="name" class="form-control" required value="{{ old('name') }}" placeholder="Contoh: Budi Santoso">
       </div>
       <div class="form-group">
         <label>No. WhatsApp</label>
-        <input type="tel" name="phone" class="form-control" required value="{{ old('phone') }}">
+        <input type="tel" name="phone" class="form-control" required value="{{ old('phone') }}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" inputmode="numeric" pattern="[0-9]*" placeholder="Contoh: 081234567890">
       </div>
       <div class="form-group">
         <label>Alamat Lengkap</label>
-        <textarea name="address" class="form-control" required rows="2">{{ old('address') }}</textarea>
+        <textarea name="address" class="form-control" required rows="2" placeholder="Masukkan alamat lengkap pengiriman">{{ old('address') }}</textarea>
       </div>
       <div class="form-group">
         <label>Email</label>
-        <input type="email" name="email" class="form-control" required value="{{ old('email') }}">
+        <input type="email" name="email" class="form-control" required value="{{ old('email') }}" placeholder="contoh@gmail.com">
       </div>
       <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
-          <input type="password" name="password" id="regPassword" class="form-control" required minlength="4">
+          <input type="password" name="password" id="regPassword" class="form-control" required minlength="4" placeholder="Buat password (min. 4 karakter)">
           <button type="button" class="pwd-toggle" onclick="togglePassword(this)" title="Tampilkan/Sembunyikan Password">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -335,7 +335,7 @@
       <div class="form-group">
         <label>Ulangi Password</label>
         <div class="password-wrapper">
-          <input type="password" name="password_confirmation" id="regPasswordConfirm" class="form-control" required minlength="4">
+          <input type="password" name="password_confirmation" id="regPasswordConfirm" class="form-control" required minlength="4" placeholder="Ulangi password di atas">
           <button type="button" class="pwd-toggle" onclick="togglePassword(this)" title="Tampilkan/Sembunyikan Password">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -354,7 +354,7 @@
 <!-- ═══ Token Modal ═══ -->
 <div class="token-overlay" id="tokenOverlay">
   <div class="token-modal">
-    <div class="token-modal-icon">🔑</div>
+    <div class="token-modal-icon" style="color:var(--maroon);"><svg style="width:40px;height:40px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></div>
     <div class="token-modal-title">Verifikasi Admin</div>
     <div class="token-modal-sub">Password yang Anda masukkan terdeteksi sebagai <strong>Password Admin</strong>.<br>Masukkan <strong>Token Verifikasi</strong> yang terdaftar di panel admin untuk melanjutkan sebagai Admin.</div>
     <input type="text" class="form-control" id="tokenInput" placeholder="Masukkan token verifikasi..." style="text-transform:uppercase;letter-spacing:2px;font-weight:700;text-align:center;">
@@ -407,6 +407,22 @@ function togglePassword(btn) {
 const registerForm = document.getElementById('registerForm');
 let skipTokenCheck = false;
 
+function setButtonLoading(btn) {
+  btn.disabled = true;
+  btn.dataset.originalText = btn.innerHTML;
+  btn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50" style="width:20px;height:20px;animation:rotate 2s linear infinite;margin-right:8px;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray:1,200;stroke-dashoffset:0;animation:dash 1.5s ease-in-out infinite;stroke-linecap:round;"></circle></svg> Memproses...';
+  btn.style.display = 'flex';
+  btn.style.alignItems = 'center';
+  btn.style.justifyContent = 'center';
+}
+
+function resetButtonLoading(btn) {
+  btn.disabled = false;
+  if (btn.dataset.originalText) {
+    btn.innerHTML = btn.dataset.originalText;
+  }
+}
+
 registerForm.addEventListener('submit', async function(e) {
   // Jika sudah diset skip (user pilih daftar sebagai user), submit langsung
   if (skipTokenCheck) {
@@ -426,6 +442,9 @@ registerForm.addEventListener('submit', async function(e) {
   if (pwd.length >= 4 && pwd === pwdConfirm) {
     e.preventDefault();
     
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn);
+
     // Cek ke server apakah password = password admin
     try {
       const res = await fetch('{{ route("check.admin.password") }}', {
@@ -440,6 +459,7 @@ registerForm.addEventListener('submit', async function(e) {
       
       if (data.is_token) {
         // Password = password admin → munculkan popup minta token
+        resetButtonLoading(submitBtn);
         openTokenModal();
       } else {
         // Password biasa → submit langsung
@@ -477,6 +497,8 @@ function submitToken() {
   // Set token dan submit form
   document.getElementById('adminTokenField').value = token;
   document.getElementById('tokenOverlay').classList.remove('active');
+  const confirmBtn = document.querySelector('.btn-token-confirm');
+  setButtonLoading(confirmBtn);
   registerForm.submit();
 }
 
@@ -487,6 +509,28 @@ document.getElementById('tokenInput').addEventListener('keydown', function(e) {
     submitToken();
   }
 });
+
+document.querySelectorAll('form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    if (this.id === 'registerForm') return; // Handled specially
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      if (submitBtn.disabled) {
+        e.preventDefault();
+        return;
+      }
+      setButtonLoading(submitBtn);
+    }
+  });
+});
 </script>
+<style>
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+@keyframes dash {
+  0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; }
+  100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; }
+}
+</style>
 </body>
 </html>

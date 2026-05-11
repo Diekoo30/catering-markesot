@@ -166,7 +166,7 @@ button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-b
   <div style="position:fixed;top:1rem;right:1rem;z-index:100;display:flex;align-items:center;gap:0.8rem;">
     <!-- Pesanan Saya -->
     <a href="{{ route('my.orders') }}" style="background:rgba(255,255,255,0.9);padding:0.6rem 1.2rem;border-radius:25px;box-shadow:var(--shadow-sm);text-decoration:none;color:var(--text);font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:0.5rem;backdrop-filter:blur(5px);position:relative;">
-      📦 Pesanan Saya
+      <svg style="width:16px;height:16px;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Pesanan Saya
       @if($activeOrderCount > 0)
         <span style="background:#ef4444;color:white;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;border:2px solid white;position:absolute;top:-6px;right:-6px;">{{ $activeOrderCount }}</span>
       @endif
@@ -175,7 +175,7 @@ button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-b
     <!-- User Dropdown -->
     <div style="position:relative;" id="userMenuWrap">
       <button onclick="document.getElementById('userDropdown').classList.toggle('show-dropdown')" style="background:rgba(255,255,255,0.9);border:none;padding:0.6rem 1.2rem;border-radius:25px;box-shadow:var(--shadow-sm);color:var(--maroon);font-weight:700;font-size:0.85rem;display:flex;align-items:center;gap:0.4rem;backdrop-filter:blur(5px);cursor:pointer;font-family:inherit;">
-        👤 {{ auth()->user()->name }} ▾
+        <svg style="width:16px;height:16px;margin-right:2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> {{ auth()->user()->name }} ▾
       </button>
       
       <div id="userDropdown" class="user-dropdown">
@@ -183,10 +183,10 @@ button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-b
           <div style="font-weight: 700; color: var(--text);">{{ auth()->user()->name }}</div>
           <div style="font-size: 0.75rem; color: var(--text-light); word-break: break-all;">{{ auth()->user()->email }}</div>
         </div>
-        <a href="{{ route('change.password') }}">🔑 Ubah Password</a>
+        <a href="{{ route('change.password') }}" style="display:flex;align-items:center;gap:6px;"><svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg> Ubah Password</a>
         <form action="{{ route('logout') }}" method="POST" style="margin:0;">
           @csrf
-          <button type="submit">🚪 Logout</button>
+          <button type="submit" style="display:flex;align-items:center;gap:6px;"><svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Logout</button>
         </form>
       </div>
     </div>
@@ -222,14 +222,14 @@ button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-b
 <section class="hero">
   <div class="hero-circles"><span></span><span></span><span></span></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">🎓 Kantin Universitas Jember</div>
+    <div class="hero-eyebrow">Kantin Universitas Jember</div>
     <h1 class="hero-title">MARKESOT</h1>
     <p class="hero-subtitle">Authentic Campus Kitchen</p>
     <p class="hero-desc">"Perut kosong hati meronta, cium aroma langsung tergoda.<br>Markesot bukan nama biasa — rasa masakan bikin jatuh cinta!"</p>
     <div class="hero-btns">
-      <button class="btn-gold" onclick="openOrder()">🍽️ Pesan Sekarang</button>
-      <button class="btn-dss-hero" onclick="openDSS()">
-        <div class="dss-sparkle">🧠</div>
+      <button class="btn-gold" onclick="openOrder()" style="display:flex;align-items:center;gap:8px;justify-content:center;"><svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg> Pesan Sekarang</button>
+      <button class="btn-dss-hero" onclick="openDSS()" style="display:flex;align-items:center;gap:8px;justify-content:center;">
+        <div class="dss-sparkle" style="display:flex;align-items:center;justify-content:center;background:white;color:var(--gold);border-radius:50%;width:24px;height:24px;"><svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg></div>
         Bingung mau makan apa?
       </button>
     </div>
@@ -239,10 +239,10 @@ button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-b
 
 <!-- STATS -->
 <div class="stats-strip">
-  <div class="stat-item"><div class="stat-num">5+</div><div class="stat-label">Menu Pilihan</div></div>
-  <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Bahan Segar</div></div>
-  <div class="stat-item"><div class="stat-num">Halal</div><div class="stat-label">Terjamin</div></div>
-  <div class="stat-item"><div class="stat-num">Fast</div><div class="stat-label">Penyajian Cepat</div></div>
+  <div class="stat-item"><div class="stat-num">Murah</div><div class="stat-label">Harga Mahasiswa</div></div>
+  <div class="stat-item"><div class="stat-num">Kenyang</div><div class="stat-label">Porsi Pas di Perut</div></div>
+  <div class="stat-item"><div class="stat-num">Fresh</div><div class="stat-label">Dimasak Tiap Hari</div></div>
+  <div class="stat-item"><div class="stat-num">Halal</div><div class="stat-label">Bahan Terjamin</div></div>
 </div>
 
 <!-- MENU SECTION -->
@@ -283,7 +283,7 @@ button, a, input, select, textarea, .m-card, .btn-detail, .fab, .pay-opt, .qty-b
                 <span class="m-card-emoji">{{ $menu['emoji'] }}</span>
               @endif
               @if(!empty($menu['is_best_seller']))
-                <span class="m-card-badge">🔥 Best Seller</span>
+                <span class="m-card-badge" style="display:flex;align-items:center;gap:4px;"><svg style="width:12px;height:12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg> Best Seller</span>
               @endif
             </div>
             <div class="m-card-body">
@@ -355,13 +355,13 @@ function toggleMenuMore() {
 <section class="dss-strip sr">
   <div class="dss-strip-inner">
     <div class="dss-strip-left">
-      <div class="dss-strip-tag">🧠 Rekomendasi Cerdas</div>
+      <div class="dss-strip-tag">Rekomendasi Cerdas</div>
       <div class="dss-strip-title">Bingung mau<br>makan <em>apa?</em></div>
       <div class="dss-strip-sub">Jawab beberapa pertanyaan singkat dan sistem kami akan merekomendasikan menu yang paling cocok untukmu hari ini — cepat, mudah, dan akurat!</div>
     </div>
     <div class="dss-strip-right">
       <button class="btn-dss-main" onclick="openDSS()">
-        <span class="brain">🧠</span>
+        <span class="brain" style="display:inline-flex;align-items:center;justify-content:center;"><svg style="width:28px;height:28px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg></span>
         Rekomendasiin Menu<br>
         <span style="font-size:.8rem;font-weight:500;opacity:.8">untuk saya!</span>
       </button>
@@ -653,9 +653,9 @@ function closeNewsDetail() {
   <h2 class="cta-title">Sudah Lapar? <em>Yuk Order!</em></h2>
   <p class="cta-sub">Jangan biarkan perut kosong mengganggu harimu. Satu klik, pesanan langsung kami proses!</p>
   <div class="cta-btns">
-    <button class="btn-gold" style="font-size:1.05rem;padding:1.1rem 2.8rem;" onclick="openOrder()">🛒 Keranjang</button>
-    <button class="btn-dss-hero" onclick="openDSS()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);">
-      <div class="dss-sparkle">🧠</div> Masih bingung? Coba rekomendasi
+    <button class="btn-gold" style="font-size:1.05rem;padding:1.1rem 2.8rem;display:flex;align-items:center;gap:8px;justify-content:center;" onclick="openOrder()"><svg style="width:20px;height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Keranjang</button>
+    <button class="btn-dss-hero" onclick="openDSS()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);display:flex;align-items:center;gap:8px;justify-content:center;">
+      <div class="dss-sparkle" style="display:flex;align-items:center;justify-content:center;background:white;color:var(--gold);border-radius:50%;width:24px;height:24px;"><svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg></div> Masih bingung? Coba rekomendasi
     </button>
   </div>
 </section>
@@ -693,8 +693,8 @@ function closeNewsDetail() {
   <button class="fab fab-dss" onclick="openDSS()">
     <div class="fab-dot"></div> Bingung mau makan apa?
   </button>
-  <button class="fab fab-order" onclick="openOrder()">
-    <div class="fab-dot"></div> 🛒 Keranjang
+  <button class="fab fab-order" id="fabCart" onclick="openOrder()">
+    <div class="fab-dot"></div> <svg style="width:18px;height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Keranjang
   </button>
 </div>
 
@@ -721,7 +721,7 @@ function closeNewsDetail() {
   <div class="sheet" id="dssSheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <div class="sheet-title" id="dssTitle">🧠 Rekomendasi Menu</div>
+      <div class="sheet-title" id="dssTitle">Rekomendasi Menu</div>
       <button class="sheet-close" onclick="closeDSS()">✕</button>
     </div>
     <div class="dss-progress-wrap" id="dssProgressWrap">
@@ -743,7 +743,7 @@ function closeNewsDetail() {
   <div class="sheet" style="max-width: 450px; max-height: 90vh; border-radius: 20px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
     <div style="position: relative; width: 100%; height: 260px; background: #f5f5f5;" id="mdImgWrap">
       <img id="mdImg" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-      <div id="mdEmoji" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 6rem; background: linear-gradient(135deg,#f5e4be,#e8c97a); display: none;">🍽️</div>
+      <div id="mdEmoji" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--maroon); background: linear-gradient(135deg,#f5e4be,#e8c97a); display: none;"><svg style="width:80px;height:80px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path></svg></div>
       <button onclick="document.getElementById('menuDetailModal').classList.remove('open')" style="position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(4px); transition: 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.8)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">✕</button>
     </div>
     <div style="padding: 1.5rem; flex: 1; overflow-y: auto;">
@@ -757,12 +757,12 @@ function closeNewsDetail() {
       <p id="mdDesc" style="color: var(--text-light); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">Deskripsi...</p>
       
       <div style="background: #fafafa; border: 1px solid #eee; border-radius: 14px; padding: 1.2rem;">
-        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px;">📊 Karakteristik Rasa</h4>
+        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px;"><svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Karakteristik Rasa</h4>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);">😋 Rasa</span> <span id="mdRasa" style="font-weight:800; color:var(--text);">5/5</span></div>
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);">💸 Harga</span> <span id="mdHarga" style="font-weight:800; color:var(--text);">5/5</span></div>
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);">🥗 Sehat</span> <span id="mdSehat" style="font-weight:800; color:var(--text);">5/5</span></div>
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);">🍛 Kenyang</span> <span id="mdKenyang" style="font-weight:800; color:var(--text);">5/5</span></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);display:flex;align-items:center;"><svg style="width:14px;height:14px;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg> Rasa</span> <span id="mdRasa" style="font-weight:800; color:var(--text);">5/5</span></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);display:flex;align-items:center;"><svg style="width:14px;height:14px;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Harga</span> <span id="mdHarga" style="font-weight:800; color:var(--text);">5/5</span></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);display:flex;align-items:center;"><svg style="width:14px;height:14px;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Sehat</span> <span id="mdSehat" style="font-weight:800; color:var(--text);">5/5</span></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;"><span style="color:var(--text-light);display:flex;align-items:center;"><svg style="width:14px;height:14px;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg> Kenyang</span> <span id="mdKenyang" style="font-weight:800; color:var(--text);">5/5</span></div>
         </div>
         <div id="mdTags" style="margin-top: 1.2rem; display: flex; flex-wrap: wrap; gap: 0.5rem;"></div>
       </div>

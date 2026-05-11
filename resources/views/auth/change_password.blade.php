@@ -124,7 +124,7 @@
   <div class="card-sub">Masukkan password lama dan password baru Anda</div>
 
   @if(session('success'))
-    <div class="alert-success">✅ {{ session('success') }}</div>
+    <div class="alert-success" style="display:flex;align-items:center;gap:8px;"><svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> {{ session('success') }}</div>
   @endif
 
   <form action="{{ route('change.password.post') }}" method="POST">
@@ -222,5 +222,32 @@ function togglePassword(btn) {
 }
 </script>
 
+<style>
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+@keyframes dash {
+  0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; }
+  100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; }
+}
+</style>
+<script>
+document.querySelectorAll('form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      if (submitBtn.disabled) {
+        e.preventDefault();
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.dataset.originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50" style="width:20px;height:20px;animation:rotate 2s linear infinite;margin-right:8px;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray:1,200;stroke-dashoffset:0;animation:dash 1.5s ease-in-out infinite;stroke-linecap:round;"></circle></svg> Memproses...';
+      submitBtn.style.display = 'flex';
+      submitBtn.style.alignItems = 'center';
+      submitBtn.style.justifyContent = 'center';
+    }
+  });
+});
+</script>
 </body>
 </html>

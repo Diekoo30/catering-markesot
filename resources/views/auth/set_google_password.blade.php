@@ -244,7 +244,7 @@
 <!-- ═══ Token Modal ═══ -->
 <div class="token-overlay" id="tokenOverlay">
   <div class="token-modal">
-    <div class="token-modal-icon">🔑</div>
+    <div class="token-modal-icon" style="color:var(--maroon);"><svg style="width:40px;height:40px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></div>
     <div class="token-modal-title">Verifikasi Admin</div>
     <div class="token-modal-sub">Password yang Anda masukkan terdeteksi sebagai <strong>Password Admin</strong>.<br>Masukkan <strong>Token Verifikasi</strong> yang terdaftar di panel admin untuk melanjutkan sebagai Admin.</div>
     <input type="text" class="form-control" id="tokenInput" placeholder="Masukkan token verifikasi..." style="text-transform:uppercase;letter-spacing:2px;font-weight:700;text-align:center;">
@@ -279,6 +279,22 @@ function togglePassword(btn) {
 const googlePasswordForm = document.getElementById('googlePasswordForm');
 let skipTokenCheck = false;
 
+function setButtonLoading(btn) {
+  btn.disabled = true;
+  btn.dataset.originalText = btn.innerHTML;
+  btn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50" style="width:20px;height:20px;animation:rotate 2s linear infinite;margin-right:8px;"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" style="stroke-dasharray:1,200;stroke-dashoffset:0;animation:dash 1.5s ease-in-out infinite;stroke-linecap:round;"></circle></svg> Memproses...';
+  btn.style.display = 'flex';
+  btn.style.alignItems = 'center';
+  btn.style.justifyContent = 'center';
+}
+
+function resetButtonLoading(btn) {
+  btn.disabled = false;
+  if (btn.dataset.originalText) {
+    btn.innerHTML = btn.dataset.originalText;
+  }
+}
+
 googlePasswordForm.addEventListener('submit', async function(e) {
   // Jika sudah diset skip (user pilih lanjut sebagai user), submit langsung
   if (skipTokenCheck) {
@@ -298,6 +314,9 @@ googlePasswordForm.addEventListener('submit', async function(e) {
   if (pwd.length >= 4 && pwd === pwdConfirm) {
     e.preventDefault();
     
+    const submitBtn = this.querySelector('button[type="submit"]');
+    setButtonLoading(submitBtn);
+
     // Cek ke server apakah password = password admin
     try {
       const res = await fetch('{{ route("check.admin.password") }}', {
@@ -312,6 +331,7 @@ googlePasswordForm.addEventListener('submit', async function(e) {
       
       if (data.is_token) {
         // Password = password admin → munculkan popup minta token
+        resetButtonLoading(submitBtn);
         openTokenModal();
       } else {
         // Password biasa → submit langsung
@@ -349,6 +369,8 @@ function submitToken() {
   // Set token dan submit form
   document.getElementById('adminTokenField').value = token;
   document.getElementById('tokenOverlay').classList.remove('active');
+  const confirmBtn = document.querySelector('.btn-token-confirm');
+  setButtonLoading(confirmBtn);
   googlePasswordForm.submit();
 }
 
@@ -359,7 +381,28 @@ document.getElementById('tokenInput').addEventListener('keydown', function(e) {
     submitToken();
   }
 });
-</script>
 
+document.querySelectorAll('form').forEach(form => {
+  form.addEventListener('submit', function(e) {
+    if (this.id === 'googlePasswordForm') return; // Handled specially
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      if (submitBtn.disabled) {
+        e.preventDefault();
+        return;
+      }
+      setButtonLoading(submitBtn);
+    }
+  });
+});
+</script>
+<style>
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+@keyframes dash {
+  0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; }
+  100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; }
+}
+</style>
 </body>
 </html>

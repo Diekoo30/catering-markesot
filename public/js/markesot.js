@@ -113,7 +113,7 @@ function oS1(){
 
   if (!has) {
     h += `<div style="text-align:center;padding:2.5rem 1rem;">
-      <div style="font-size:3rem;margin-bottom:0.8rem;">🛒</div>
+      <div style="margin-bottom:0.8rem;color:var(--maroon);"><svg style="width:64px;height:64px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></div>
       <div style="font-weight:700;font-size:1.1rem;color:#333;margin-bottom:0.4rem;">Keranjang Masih Kosong</div>
       <div style="font-size:0.85rem;color:#888;line-height:1.5;margin-bottom:1.5rem;">Pilih menu pada halaman utama terlebih dahulu, lalu kembali ke sini untuk melanjutkan pesanan.</div>
       <button class="btn-primary" onclick="closeOrder(); setTimeout(() => document.getElementById('menu')?.scrollIntoView({behavior:'smooth'}), 100);" style="width:100%;">Lihat Menu Kami</button>
