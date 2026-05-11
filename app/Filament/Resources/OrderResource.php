@@ -58,7 +58,7 @@ class OrderResource extends Resource
                     ->label('No. Telepon')
                     ->required()
                     ->tel()
-                    ->maxLength(20),
+                    ->maxLength(13),
 
                 TextInput::make('customer_email')
                     ->label('Email')

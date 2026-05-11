@@ -49,6 +49,7 @@ class MenuItemResource extends Resource
                 Textarea::make('description')
                     ->label('Deskripsi')
                     ->rows(3)
+                    ->maxLength(500)
                     ->columnSpanFull(),
             ])->columns(2),
 
@@ -98,6 +99,7 @@ class MenuItemResource extends Resource
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Foto')
                     ->circular()
+                    ->disk('public')
                     ->defaultImageUrl(fn () => 'https://ui-avatars.com/api/?name=Menu&background=f59e0b&color=fff'),
 
                 Tables\Columns\TextColumn::make('name')

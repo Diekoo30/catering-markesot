@@ -379,12 +379,18 @@ function toggleMenuMore() {
     <div class="section-rule"></div>
     <p class="section-sub">Dokumentasi kegiatan, acara, dan kerjasama kami bersama berbagai mitra.</p>
   </div>
-  <div class="news-scroll-container" id="newsScrollContainer">
-    <div class="news-scroll-track" id="newsScrollTrack">
+  <div class="news-scroll-wrapper">
+    <div class="news-scroll-container" id="newsScrollContainer">
+      <div class="news-scroll-track" id="newsScrollTrack">
       @foreach($newsList as $news)
+      @php
+          $newsImages = is_array($news->image) ? $news->image : [];
+          $firstImg = !empty($newsImages) ? asset('storage/' . $newsImages[0]) : '';
+          $allImagesJson = !empty($newsImages) ? json_encode(array_map(fn($img) => asset('storage/' . $img), $newsImages)) : '[]';
+      @endphp
       <div class="news-card">
-        @if($news->image)
-        <div class="news-card-img" style="background-image:url('{{ asset('storage/' . $news->image) }}');"></div>
+        @if($firstImg)
+        <div class="news-card-img" style="background-image:url('{{ $firstImg }}');"></div>
         @else
         <div class="news-card-img" style="background:linear-gradient(135deg, var(--maroon), #b22222); display:flex; align-items:center; justify-content:center; color:white; font-size:3rem;">
           <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="white"><path d="M160-200q-33 0-56.5-23.5T80-280v-400q0-33 23.5-56.5T160-760h640q33 0 56.5 23.5T880-680v400q0 33-23.5 56.5T800-200H160Zm0-80h640v-400H160v400Zm40-40h560L620-520 510-380l-70-86-240 306Zm-40 40v-400 400Z"/></svg>
@@ -393,15 +399,27 @@ function toggleMenuMore() {
         <div class="news-card-body">
           <div class="news-card-title">{{ $news->title }}</div>
           <div class="news-card-desc">{{ $news->description }}</div>
-          <button class="news-detail-btn" onclick="openNewsDetail({{ $news->id }}, '{{ addslashes($news->title) }}', `{{ addslashes($news->description) }}`, '{{ $news->image ? asset('storage/' . $news->image) : '' }}', '{{ $news->created_at->translatedFormat('d F Y') }}')">Detail</button>
+          <button class="news-detail-btn" 
+                  data-id="{{ $news->id }}" 
+                  data-title="{{ $news->title }}" 
+                  data-desc="{{ $news->description }}" 
+                  data-images="{{ $allImagesJson }}" 
+                  data-date="{{ $news->created_at->translatedFormat('d F Y') }}" 
+                  onclick="handleNewsDetail(this)">Detail</button>
         </div>
       </div>
       @endforeach
+      </div>
     </div>
   </div>
 </section>
 
 <style>
+.news-scroll-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .news-scroll-container {
   width: 100%;
   overflow-x: auto;
@@ -409,7 +427,6 @@ function toggleMenuMore() {
   padding: 0 0 2rem 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  scroll-snap-type: x mandatory;
 }
 .news-scroll-container::-webkit-scrollbar { display: none; }
 
@@ -417,12 +434,11 @@ function toggleMenuMore() {
   display: flex;
   gap: 1.5rem;
   width: max-content;
-  padding: 0 max(1.5rem, 5vw);
+  padding: 0 1.5rem;
 }
 
 .news-card {
   flex: 0 0 300px;
-  scroll-snap-align: start;
   background: white;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
@@ -518,14 +534,27 @@ function toggleMenuMore() {
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   animation: slideUp 0.3s ease;
 }
-.news-modal-img {
-  width: 100%;
-  height: 260px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+.news-modal-img-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  background: #111;
   border-radius: 20px 20px 0 0;
-  position: relative;
+  width: 100%;
+  scrollbar-width: none;
+}
+.news-modal-img-container::-webkit-scrollbar { display: none; }
+
+.news-modal-img {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  width: 100%;
+  height: 320px;
+  object-fit: contain;
+  background: #111;
+}
+.news-modal-img.placeholder {
+  background: linear-gradient(135deg, var(--maroon), #b22222);
 }
 .news-modal-close {
   position: absolute;
@@ -577,10 +606,14 @@ function toggleMenuMore() {
 <!-- News Detail Modal -->
 <div class="news-modal-overlay" id="newsModal" onclick="if(event.target===this)closeNewsDetail()">
   <div class="news-modal">
-    <div class="news-modal-img" id="newsModalImg">
+    <div style="position:relative;">
+      <div class="news-modal-img-container" id="newsModalImgContainer">
+        <!-- Images injected here -->
+      </div>
       <button class="news-modal-close" onclick="closeNewsDetail()">
         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="white"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
       </button>
+      <div id="newsModalDots" style="position:absolute; bottom:12px; width:100%; display:flex; justify-content:center; gap:6px; pointer-events:none;"></div>
     </div>
     <div class="news-modal-body">
       <div class="news-modal-date" id="newsModalDate"></div>
@@ -593,48 +626,127 @@ function toggleMenuMore() {
 <script>
 (function() {
   const container = document.getElementById('newsScrollContainer');
-  if (!container) return;
+  const track = document.getElementById('newsScrollTrack');
+  if (!container || !track) return;
 
   const itemCount = {{ $newsList->count() }};
-  let autoScrollInterval = null;
   let isPaused = false;
+  let resumeTimer = null;
 
-  // Auto Scroll Logic
   if (itemCount >= 5) {
-    function startAutoScroll() {
-      autoScrollInterval = setInterval(() => {
-        if (!isPaused) {
-          container.scrollLeft += 1;
-          if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 10)) {
-            container.scrollLeft = 0;
-          }
-        }
-      }, 30);
-    }
-    
-    startAutoScroll();
+    // Duplicate cards for seamless infinite loop
+    const cards = track.innerHTML;
+    track.innerHTML = cards + cards;
 
-    container.addEventListener('mouseenter', () => isPaused = true);
-    container.addEventListener('mouseleave', () => isPaused = false);
-    container.addEventListener('touchstart', () => isPaused = true, {passive: true});
-    container.addEventListener('touchend', () => {
-      setTimeout(() => isPaused = false, 1500);
+    // Wait for DOM to fully render before measuring
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const halfWidth = track.scrollWidth / 2;
+
+        // Auto scroll
+        setInterval(() => {
+          if (!isPaused) {
+            container.scrollLeft += 1;
+            if (container.scrollLeft >= halfWidth) {
+              container.scrollLeft = 0;
+            }
+          }
+        }, 20);
+
+        // Also reset on manual scroll so it's always infinite
+        let isResetting = false;
+        container.addEventListener('scroll', () => {
+          if (isResetting) return;
+          if (container.scrollLeft >= halfWidth) {
+            isResetting = true;
+            container.scrollLeft = 0;
+            isResetting = false;
+          }
+        });
+      });
+    });
+
+    // Pause on hover
+    container.addEventListener('mouseenter', () => { isPaused = true; clearTimeout(resumeTimer); });
+    container.addEventListener('mouseleave', () => { resumeTimer = setTimeout(() => isPaused = false, 500); });
+
+    // Pause on touch (mobile swipe)
+    container.addEventListener('touchstart', () => { isPaused = true; clearTimeout(resumeTimer); }, {passive: true});
+    container.addEventListener('touchend', () => { resumeTimer = setTimeout(() => isPaused = false, 3000); });
+
+    // Pause on card click, resume after 3s
+    track.querySelectorAll('.news-card').forEach(card => {
+      card.addEventListener('click', () => {
+        isPaused = true;
+        clearTimeout(resumeTimer);
+        resumeTimer = setTimeout(() => isPaused = false, 3000);
+      });
     });
   }
 })();
 
-function openNewsDetail(id, title, desc, img, date) {
+function handleNewsDetail(btn) {
+  const id = btn.getAttribute('data-id');
+  const title = btn.getAttribute('data-title');
+  const desc = btn.getAttribute('data-desc');
+  let images = [];
+  try { images = JSON.parse(btn.getAttribute('data-images') || '[]'); } catch(e){}
+  const date = btn.getAttribute('data-date');
+  openNewsDetail(id, title, desc, images, date);
+}
+
+function openNewsDetail(id, title, desc, images, date) {
   document.getElementById('newsModalTitle').textContent = title;
   document.getElementById('newsModalDesc').textContent = desc;
   document.getElementById('newsModalDate').textContent = date;
 
-  const imgEl = document.getElementById('newsModalImg');
-  if (img) {
-    imgEl.style.backgroundImage = `url('${img}')`;
-    imgEl.style.display = 'block';
+  const container = document.getElementById('newsModalImgContainer');
+  const dotsContainer = document.getElementById('newsModalDots');
+  container.innerHTML = '';
+  dotsContainer.innerHTML = '';
+
+  if (images && images.length > 0) {
+    images.forEach((img, idx) => {
+      const imgEl = document.createElement('img');
+      imgEl.className = 'news-modal-img';
+      imgEl.src = img;
+      container.appendChild(imgEl);
+
+      if (images.length > 1) {
+        const dot = document.createElement('div');
+        dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.4);transition:0.3s;`;
+        if(idx === 0) dot.style.background = 'white';
+        dotsContainer.appendChild(dot);
+      }
+    });
+
+    if (images.length > 1) {
+      // Add prev/next buttons
+      const btnPrev = document.createElement('button');
+      btnPrev.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="white"><path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>';
+      btnPrev.style.cssText = 'position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);z-index:10;';
+      btnPrev.onclick = () => container.scrollBy({ left: -container.clientWidth, behavior: 'smooth' });
+      
+      const btnNext = document.createElement('button');
+      btnNext.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="white"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg>';
+      btnNext.style.cssText = 'position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);z-index:10;';
+      btnNext.onclick = () => container.scrollBy({ left: container.clientWidth, behavior: 'smooth' });
+
+      document.getElementById('newsModalImgContainer').parentElement.appendChild(btnPrev);
+      document.getElementById('newsModalImgContainer').parentElement.appendChild(btnNext);
+
+      container.onscroll = () => {
+        const idx = Math.round(container.scrollLeft / container.clientWidth);
+        Array.from(dotsContainer.children).forEach((d, i) => {
+          d.style.background = i === idx ? 'white' : 'rgba(255,255,255,0.4)';
+        });
+      };
+    }
   } else {
-    imgEl.style.backgroundImage = 'linear-gradient(135deg, #800000, #b22222)';
-    imgEl.style.display = 'block';
+    const div = document.createElement('div');
+    div.className = 'news-modal-img placeholder';
+    div.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;"><svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="white"><path d="M160-200q-33 0-56.5-23.5T80-280v-400q0-33 23.5-56.5T160-760h640q33 0 56.5 23.5T880-680v400q0 33-23.5 56.5T800-200H160Zm0-80h640v-400H160v400Zm40-40h560L620-520 510-380l-70-86-240 306Zm-40 40v-400 400Z"/></svg></div>';
+    container.appendChild(div);
   }
 
   document.getElementById('newsModal').classList.add('active');

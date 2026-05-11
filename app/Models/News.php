@@ -15,6 +15,7 @@ class News extends Model
     ];
 
     protected $casts = [
+        'image' => 'array',
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];

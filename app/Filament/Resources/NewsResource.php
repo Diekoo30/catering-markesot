@@ -39,18 +39,17 @@ class NewsResource extends Resource
                         ->label('Deskripsi')
                         ->required()
                         ->rows(4)
+                        ->maxLength(1000)
                         ->columnSpanFull(),
 
                     FileUpload::make('image')
-                        ->label('Foto Kegiatan')
+                        ->label('Foto Kegiatan (Maksimal 5 foto, Max: 2MB/foto)')
                         ->image()
+                        ->multiple()
+                        ->maxFiles(5)
                         ->disk('public')
                         ->directory('news')
-                        ->maxSize(5120)
-                        ->imageResizeMode('cover')
-                        ->imageCropAspectRatio('16:9')
-                        ->imageResizeTargetWidth('800')
-                        ->imageResizeTargetHeight('450')
+                        ->maxSize(2048)
                         ->columnSpanFull(),
 
                     Toggle::make('is_active')
@@ -65,10 +64,10 @@ class NewsResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->label('Foto')
-                    ->circular(false)
-                    ->width(80)
-                    ->height(50),
+                        ->label('Foto')
+                        ->circular()
+                        ->disk('public')
+                        ->getStateUsing(fn ($record) => is_array($record->image) ? ($record->image[0] ?? null) : $record->image),
 
                 Tables\Columns\TextColumn::make('title')
                     ->label('Judul')

@@ -310,7 +310,7 @@
       </div>
       <div class="form-group">
         <label>No. WhatsApp</label>
-        <input type="tel" name="phone" class="form-control" required value="{{ old('phone') }}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" inputmode="numeric" pattern="[0-9]*" placeholder="Contoh: 081234567890">
+        <input type="tel" name="phone" class="form-control" required value="{{ old('phone') }}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" inputmode="numeric" pattern="[0-9]*" maxlength="13" placeholder="Contoh: 081234567890">
       </div>
       <div class="form-group">
         <label>Alamat Lengkap</label>
