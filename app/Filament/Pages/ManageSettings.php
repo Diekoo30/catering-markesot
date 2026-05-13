@@ -150,6 +150,7 @@ class ManageSettings extends Page
                             ->label('No. Telepon / WhatsApp')
                             ->tel()
                             ->maxLength(13)
+                            ->extraInputAttributes(['oninput' => "this.value = this.value.replace(/[^0-9]/g, '')"])
                             ->disabled(fn () => empty($this->editModes['company'])),
 
                         \Filament\Forms\Components\Textarea::make('company_address')

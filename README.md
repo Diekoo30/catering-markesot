@@ -1,59 +1,136 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Catering Markesot 🍲
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Catering Markesot adalah sistem manajemen pemesanan catering modern yang dibangun menggunakan kerangka kerja Laravel dan Filament PHP. Aplikasi ini dirancang untuk memudahkan proses pemesanan oleh pelanggan, serta mempermudah admin dalam mengelola pesanan, menu, metode pembayaran, hingga pengaturan informasi perusahaan.
 
-## About Laravel
+## ✨ Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 🧑‍💻 Untuk Pelanggan (Customer)
+*   **Landing Page Dinamis:** Antarmuka pelanggan yang modern dan responsif.
+*   **Pemesanan Online:** Fitur keranjang belanja (shopping cart) dan checkout yang mudah digunakan.
+*   **Pembayaran QRIS Dinamis & Transfer Bank:** Dukungan pemindaian QRIS dan upload bukti transfer secara langsung.
+*   **Login & Registrasi:** Mendukung autentikasi standar maupun menggunakan **Google Sign-In** (Socialite).
+*   **Lupa Password (OTP):** Sistem reset password yang aman menggunakan verifikasi OTP via Email.
+*   **Berita & Aktivitas:** Menampilkan update terbaru dari catering dengan fitur *infinite auto-scroll* untuk pengalaman yang menyenangkan.
+*   **Pelacakan Pesanan:** Pelanggan dapat melihat status pesanan secara real-time dari "Menunggu Konfirmasi" hingga "Selesai".
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🛡️ Untuk Admin (Filament Panel)
+*   **Manajemen Pesanan:** Verifikasi bukti pembayaran (Proof of Payment), update status pesanan, dan konversi data pesanan ke format Excel.
+*   **Manajemen Menu & Kategori:** Menambah, mengubah, dan menghapus menu beserta kategorinya.
+*   **Pengaturan Sistem (Manage Settings):** Mengatur informasi perusahaan (No. Telp, Alamat, Jam Operasional), konfigurasi persentase DP, hingga metode pembayaran (Bank & QRIS string).
+*   **Manajemen Pengguna:** Mengatur hak akses pengguna dan mengelola password registrasi admin.
+*   **Log Aktivitas:** Menggunakan `spatie/laravel-activitylog` untuk memantau perubahan data pada sistem secara rinci.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🛠️ Persyaratan Sistem (Prerequisites)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Sebelum menjalankan project ini, pastikan sistem Anda sudah terinstall:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*   **PHP:** Versi 8.2 atau lebih baru
+*   **Composer:** Untuk manajemen package PHP
+*   **Node.js & npm:** Untuk kompilasi asset frontend (Vite)
+*   **MySQL / MariaDB:** Sebagai sistem manajemen database
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Cara Menjalankan Project (Instalasi)
 
-### Premium Partners
+Ikuti langkah-langkah di bawah ini untuk menjalankan project dari awal (scratch) di *local machine* Anda:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 1. Clone Repositori
+```bash
+git clone https://github.com/username-anda/catering-markesot.git
+cd catering-markesot
+```
 
-## Contributing
+### 2. Install Dependencies PHP (Composer)
+Jalankan perintah berikut untuk mengunduh semua package Laravel dan Filament yang dibutuhkan:
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Install Dependencies Frontend (NPM)
+Untuk mengunduh package frontend (TailwindCSS, Vite, dll):
+```bash
+npm install
+```
 
-## Code of Conduct
+### 4. Konfigurasi Environment (`.env`)
+Salin file `.env.example` menjadi `.env` dan generate application key:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+*(Catatan Windows: Anda bisa menggunakan perintah `copy .env.example .env` di Command Prompt)*
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Buka file `.env` dan atur koneksi database Anda, misalnya:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=catering_markesot  # Pastikan database ini sudah dibuat di MySQL Anda
+DB_USERNAME=root
+DB_PASSWORD=
+```
+**Opsional:**
+*   **Email:** Atur kredensial SMTP (Mailtrap/Gmail/dll) agar notifikasi email & OTP berjalan.
+*   **Google Login:** Atur kredensial `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` jika ingin fitur Google Sign-In berfungsi.
 
-## Security Vulnerabilities
+### 5. Migrasi Database
+Jalankan migrasi untuk membuat tabel di database, serta seeder (jika ada) untuk mengisi data awal (seperti admin default):
+```bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 6. Build Assets
+Kompilasi asset frontend menggunakan Vite:
+```bash
+npm run build
+```
+*(Gunakan `npm run dev` jika Anda ingin melakukan perubahan pada tampilan dan melihat hasilnya secara real-time).*
 
-## License
+### 7. Buat Symbolic Link Storage (Penting untuk Gambar)
+Aplikasi ini banyak menggunakan fitur upload gambar (Menu, Bukti Transfer, QRIS). Jalankan perintah berikut agar gambar dapat diakses oleh publik:
+```bash
+php artisan storage:link
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 8. Jalankan Local Server
+```bash
+php artisan serve
+```
+
+Aplikasi sekarang dapat diakses melalui browser di: `http://localhost:8000`
+
+---
+
+## 💻 Cara Penggunaan (Usage)
+
+### 🧑‍💼 Mengakses Halaman Utama (Pelanggan)
+Buka `http://localhost:8000` di browser Anda. Pelanggan dapat:
+1.  Melihat menu makanan.
+2.  Mendaftar (Register) atau login.
+3.  Menambahkan menu ke keranjang (Add to Cart).
+4.  Melakukan checkout dan mengunggah bukti transfer.
+
+### 🛠️ Mengakses Panel Admin
+Akses panel admin melalui URL: `http://localhost:8000/admin` (atau sesuai konfigurasi path Filament Anda).
+
+**Akun Admin:**
+*   Silakan login menggunakan akun admin yang ada di database. Jika Anda belum memilikinya, Anda bisa mendaftar akun baru dan mengubah `role`-nya menjadi `admin` secara langsung di database.
+
+**Fitur Unggulan Admin:**
+*   Arahkan ke menu **Pengaturan** di sidebar untuk mengubah Nomor Telepon, Jam Operasional, Rekening Bank, dan Persentase Down Payment (DP).
+*   Arahkan ke menu **Transaksi / Pesanan** untuk melihat daftar pesanan masuk dan melakukan validasi pembayaran pelanggan.
+
+---
+
+## 📦 Teknologi yang Digunakan
+*   **Laravel 12.x** - Backend Framework
+*   **Filament PHP 5.x** - Admin Panel Framework
+*   **Tailwind CSS** - Styling Framework
+*   **MySQL** - Relational Database
+*   **Vite** - Asset Bundler
+
+---
+*Dibuat dengan ❤️ untuk Catering Markesot.*
