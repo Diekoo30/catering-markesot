@@ -2,13 +2,18 @@
    SHARED DATA
 ═══════════════════════════════════════ */
 const MENUS = window.APP_MENUS || [];
+// 3 Kriteria AHP Final: Rasa | Nutrisi | Jenis Hidangan
 const CRITERIA=[
-  {id:'harga',  name:'Harga Terjangkau',  icon:'💰',desc:'Sesuai kantong'},
-  {id:'rasa',   name:'Rasa Enak',         icon:'😋',desc:'Lezat & memuaskan'},
-  {id:'sehat',  name:'Sehat & Bergizi',   icon:'🥗',desc:'Nilai gizi baik'},
-  {id:'kenyang',name:'Bikin Kenyang',     icon:'💪',desc:'Porsi memuaskan'},
+  {id:'rasa',          name:'Rasa',           icon:'😋',desc:'Gurih Pedas vs Gurih Segar'},
+  {id:'nutrisi',       name:'Nutrisi',         icon:'🥩',desc:'Protein Daging vs Protein Telur'},
+  {id:'jenis_hidangan',name:'Jenis Hidangan',  icon:'🍲',desc:'Berkuah Hangat vs Kering/Goreng'},
 ];
-const PAIRS=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+// 3 pasang VS: C(3,2) = 3
+const PAIRS=[
+  {key:'rasa_vs_nutrisi',  i:0,j:1},  // Rasa    vs Nutrisi
+  {key:'rasa_vs_jenis',    i:0,j:2},  // Rasa    vs Jenis Hidangan
+  {key:'nutrisi_vs_jenis', i:1,j:2},  // Nutrisi vs Jenis Hidangan
+];
 const fmt=n=>'Rp.'+new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
 
 /* ═══════════════════════════════════════
@@ -597,11 +602,11 @@ function resetOrder(){MENUS.forEach(m=>qty[m.id]=0);payMethod=null;uploaded=null
 /* ═══════════════════════════════════════
    DSS / AHP SYSTEM
 ═══════════════════════════════════════ */
-let pairAns=Array(6).fill(null);
-let prefAns={harga:null,rasa:null,sehat:null,kenyang:null};
+// pairAns: 3 pilihan VS (kiri/kanan/sama)
+let pairAns={rasa_vs_nutrisi:null,rasa_vs_jenis:null,nutrisi_vs_jenis:null};
 let dssScreen=0;
-
-const TOTAL_Q=10;
+let dssApiResult=null;
+const TOTAL_Q=3;
 
 function openDSS(){
   dssScreen=0;
@@ -617,133 +622,150 @@ function closeDSS(){
 function renderDSS(){
   updateDSSProgress();
   const b=document.getElementById('dssBody');
+  // Screen: 0=Intro | 1-3=Pertanyaan VS | 4=Loading | 5+=Hasil
   if(dssScreen===0)b.innerHTML=dssIntro();
-  else if(dssScreen<=6)b.innerHTML=dssPair(dssScreen-1);
-  else if(dssScreen<=10)b.innerHTML=dssPref(dssScreen-7);
-  else if(dssScreen===11){b.innerHTML=dssLoading();runDSSLoading();}
+  else if(dssScreen<=3)b.innerHTML=dssPair(dssScreen-1);
+  else if(dssScreen===4){b.innerHTML=dssLoading();runDSSLoading();}
   else b.innerHTML=dssResult();
   b.scrollTop=0;
   setTimeout(animW,80);
 }
 
 function updateDSSProgress(){
-  const answered=pairAns.filter(Boolean).length+Object.values(prefAns).filter(Boolean).length;
+  const answered=Object.values(pairAns).filter(v=>v!==null).length;
   const pct=Math.round((answered/TOTAL_Q)*100);
   document.getElementById('dssPFill').style.width=pct+'%';
   document.getElementById('dssPStep').textContent=answered+' dari '+TOTAL_Q;
-  const labels=['Yuk Mulai!','Bandingkan Kriteria','Bandingkan Kriteria','Bandingkan Kriteria','Bandingkan Kriteria','Bandingkan Kriteria','Bandingkan Kriteria','Preferensimu','Preferensimu','Preferensimu','Preferensimu','Menganalisis...','Hasilnya ada!'];
+  const labels=['Yuk Mulai!','Bandingkan Kriteria','Bandingkan Kriteria','Bandingkan Kriteria','Menghitung via AI...','Hasilnya ada!'];
   document.getElementById('dssPLabel').textContent=labels[dssScreen]||'';
   let dots='';
   for(let i=0;i<TOTAL_Q;i++){const done=i<answered,active=i===answered;dots+=`<div class="dss-dot ${done?'done':active?'active':''}"></div>`;}
   document.getElementById('dssPDots').innerHTML=dots;
 }
 
-// AHP engine
-function buildMatrix(){
-  const n=4,M=Array.from({length:n},()=>Array(n).fill(1));
-  PAIRS.forEach(([i,j],k)=>{
-    const a=pairAns[k];if(!a)return;
-    const scale=[1,2,4,6,8];
-    if(a.winner==='equal'){M[i][j]=1;M[j][i]=1;}
-    else if(a.winner===0){M[i][j]=scale[a.intensity||1];M[j][i]=1/M[i][j];}
-    else{M[j][i]=scale[a.intensity||1];M[i][j]=1/M[j][i];}
-  });
-  return M;
+// Payload 3 pilihan → backend bangun matriks 3×3
+function buildPayload(){
+  return {
+    rasa_vs_nutrisi:  pairAns.rasa_vs_nutrisi  || 'sama',
+    rasa_vs_jenis:    pairAns.rasa_vs_jenis    || 'sama',
+    nutrisi_vs_jenis: pairAns.nutrisi_vs_jenis || 'sama',
+  };
 }
-function ahpW(M){
-  const n=M.length,cs=Array(n).fill(0);
-  M.forEach(r=>r.forEach((v,j)=>cs[j]+=v));
-  const nm=M.map(r=>r.map((v,j)=>v/cs[j]));
-  return nm.map(r=>r.reduce((s,v)=>s+v,0)/n);
-}
-function calcScores(w){
-  return MENUS.filter(m=>m.cat==='food').map(m=>{
-    let sc=0;
-    CRITERIA.forEach((c,i)=>{const pv=prefAns[c.id]||3;sc+=m[c.id]*w[i]*(pv/5);});
-    return{...m,score:sc};
-  }).sort((a,b)=>b.score-a.score);
+
+// ─── Kirim ke Backend API & Dapatkan Hasil Ranking ──────────
+async function fetchDSSResult(){
+  const payload = buildPayload();
+
+  // ── DEBUG: Tampilkan payload yang dikirim di console browser ──
+  console.log('🔵 [AHP] pairAns saat kirim:', JSON.parse(JSON.stringify(pairAns)));
+  console.log('🔵 [AHP] Payload JSON dikirim:', JSON.stringify(payload));
+
+  try {
+    const resp = await fetch('/api/recommendation',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Accept':'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content||''
+      },
+      body: JSON.stringify(payload)
+    });
+    const json = await resp.json();
+
+    // ── DEBUG: Tampilkan response dari backend ──
+    console.log('🟢 [AHP] Response status:', resp.status);
+    console.log('🟢 [AHP] Weights:', json.weights);
+    console.log('🟢 [AHP] CR:', json.consistency?.cr);
+    console.log('🟢 [AHP] Ranking #1:', json.ranked?.[0]?.nama_menu, json.ranked?.[0]?.match_percentage + '%');
+
+    return json;
+  } catch(e){
+    console.error('🔴 [AHP] Fetch error:', e);
+    return { success:false, error:'Gagal terhubung ke server. Periksa koneksi Anda.' };
+  }
 }
 
 // DSS Screens
 function dssIntro(){
-  return`<div class="chat-bubble"><div class="chat-avatar">👨‍🍳</div><div class="chat-text">Halo! Saya <strong>Chef Markesot</strong> 🍽️<br><br>Biar kamu nggak bingung, yuk kita cari menu paling cocok buat kamu sekarang!<br><br>Cukup <strong>10 pertanyaan singkat</strong> — mudah banget, santai aja 😊</div></div>
+  return`<div class="chat-bubble"><div class="chat-avatar">👨‍🍳</div><div class="chat-text">Halo! Saya <strong>Chef Markesot</strong> 🍽️<br><br>Yuk cari menu paling cocok buat kamu sekarang dengan metode AHP!<br><br>Cukup <strong>3 pertanyaan singkat</strong> — super cepat! ⚡</div></div>
   <div style="background:white;border-radius:16px;padding:1.4rem;box-shadow:var(--shadow-sm);margin-bottom:1rem;">
     <div style="font-weight:700;font-size:.95rem;color:var(--text);margin-bottom:.9rem;">📋 Cara kerjanya:</div>
-    <div style="display:flex;flex-direction:column;gap:.6rem;">
-      <div style="display:flex;gap:.8rem;align-items:center;background:var(--gold-pale);border-radius:10px;padding:.8rem .9rem;">
-        <div style="font-size:1.5rem">⚖️</div>
-        <div style="flex:1"><div style="font-weight:700;font-size:.85rem;color:var(--maroon-dark)">6 pertanyaan — Pilih yang lebih penting</div><div style="font-size:.75rem;color:var(--text-light)">Pilih mana dari 2 hal yang lebih penting buatmu</div></div>
-        <div style="background:var(--maroon);color:white;border-radius:6px;padding:.2rem .55rem;font-size:.7rem;font-weight:700;flex-shrink:0">6 soal</div>
-      </div>
-      <div style="display:flex;gap:.8rem;align-items:center;background:var(--green-bg);border-radius:10px;padding:.8rem .9rem;">
-        <div style="font-size:1.5rem">🎛️</div>
-        <div style="flex:1"><div style="font-weight:700;font-size:.85rem;color:var(--maroon-dark)">4 pertanyaan — Kondisimu hari ini</div><div style="font-size:.75rem;color:var(--text-light)">Ceritain kondisi & mood makanmu sekarang</div></div>
-        <div style="background:var(--green);color:white;border-radius:6px;padding:.2rem .55rem;font-size:.7rem;font-weight:700;flex-shrink:0">4 soal</div>
-      </div>
+    <div style="display:flex;gap:.8rem;align-items:center;background:var(--gold-pale);border-radius:10px;padding:.8rem .9rem;">
+      <div style="font-size:1.5rem">⚖️</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:.85rem;color:var(--maroon-dark)">3 pertanyaan — Bandingkan 3 Kriteria</div><div style="font-size:.75rem;color:var(--text-light)">Rasa 😋 vs Nutrisi 🥩 vs Porsi 🍽️ — pilih yang lebih penting!</div></div>
+      <div style="background:var(--maroon);color:white;border-radius:6px;padding:.2rem .55rem;font-size:.7rem;font-weight:700;flex-shrink:0">3 soal</div>
     </div>
   </div>
-  <button class="btn-primary" onclick="dssGo(1)">Siap! Mulai Sekarang 🚀</button>`;
+  <button class="btn-primary" onclick="dssGo(1)">Mulai Sekarang 🚀</button>`;
 }
 
+
+// dssPair — Render 1 pertanyaan VS
+// idx: 0-3 (4 pasang pertanyaan)
 function dssPair(idx){
-  const[i,j]=PAIRS[idx],A=CRITERIA[i],B=CRITERIA[j],ans=pairAns[idx];
-  const winner=ans?.winner,intensity=ans?.intensity??1;
-  const showInt=winner===0||winner===1;
-  const iLabels=[{i:'😐',l:'Sedikit'},{i:'✅',l:'Lumayan'},{i:'⭐',l:'Jelas'},{i:'🔥',l:'Banget!'}];
-  return`<div class="pair-counter">Pertanyaan ${idx+1} dari 6<div class="pair-dots">${[0,1,2,3,4,5].map(k=>`<div class="pdot ${k<idx?'done':k===idx?'active':''}"></div>`).join('')}</div></div>
+  const pair=PAIRS[idx];
+  const A=CRITERIA[pair.i],B=CRITERIA[pair.j];
+  const currentVal=pairAns[pair.key]; // null | 'kiri' | 'kanan' | 'sama'
+
+  const selKiri  = currentVal==='kiri';
+  const selKanan = currentVal==='kanan';
+  const selSama  = currentVal==='sama';
+
+  return`<div class="pair-counter">Pertanyaan ${idx+1} dari 3<div class="pair-dots">${[0,1,2].map(k=>`<div class="pdot ${k<idx?'done':k===idx?'active':''}"></div>`).join('')}</div></div>
   <div style="background:white;border-radius:16px;padding:1.4rem;box-shadow:var(--shadow-sm);">
     <div style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:.3rem;">Mana yang lebih penting buatmu?</div>
     <div style="font-size:.82rem;color:var(--text-light);margin-bottom:1.1rem;">Tap salah satu yang lebih kamu prioritaskan saat memilih makan.</div>
     <div class="versus-wrap">
-      <div class="versus-side ${winner===0?'sel':''}" onclick="dssSelWinner(${idx},0)">
+      <div class="versus-side ${selKiri?'sel':''}" onclick="dssSelWinner('${pair.key}','kiri')">
         <div class="versus-icon">${A.icon}</div>
         <div class="versus-name">${A.name}</div>
         <div class="versus-desc">${A.desc}</div>
-        ${winner===0?'<div style="font-size:1.2rem">✅</div>':''}
+        ${selKiri?'<div style="font-size:1.2rem">✅</div>':''}
       </div>
       <div class="vs-divider"><div class="vs-circle">VS</div></div>
-      <div class="versus-side ${winner===1?'sel':''}" onclick="dssSelWinner(${idx},1)">
+      <div class="versus-side ${selKanan?'sel':''}" onclick="dssSelWinner('${pair.key}','kanan')">
         <div class="versus-icon">${B.icon}</div>
         <div class="versus-name">${B.name}</div>
         <div class="versus-desc">${B.desc}</div>
-        ${winner===1?'<div style="font-size:1.2rem">✅</div>':''}
+        ${selKanan?'<div style="font-size:1.2rem">✅</div>':''}
       </div>
     </div>
-    <div class="equal-btn ${winner==='equal'?'sel':''}" onclick="dssSelWinner(${idx},'equal')">😌 Dua-duanya sama pentingnya</div>
-    ${showInt?`<div style="margin-top:1rem;padding-top:.9rem;border-top:1px solid var(--border)">
-      <div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.5rem">Seberapa lebih penting ${winner===0?A.name:B.name}?</div>
-      <div class="intensity-row">${iLabels.map((l,k)=>`<div class="int-btn ${intensity===k?'sel':''}" onclick="dssSetInt(${idx},${k})"><span>${l.i}</span><span class="int-lbl">${l.l}</span></div>`).join('')}</div>
-    </div>`:''}
-    <button class="btn-primary" onclick="dssNextPair(${idx})" ${winner===null||winner===undefined?'disabled':''}>
-      ${idx<5?'Pertanyaan Berikutnya →':'Lanjut ke Bagian 2 →'}
+    <div class="equal-btn ${selSama?'sel':''}" onclick="dssSelWinner('${pair.key}','sama')">😌 Dua-duanya sama pentingnya</div>
+    <button class="btn-primary" onclick="dssNextPair(${idx})" ${currentVal===null?'disabled':''}>
+      ${idx<2?'Pertanyaan Berikutnya →':'Lihat Rekomendasiku! 🎉'}
     </button>
   </div>`;
 }
 
-function dssSelWinner(idx,w){
-  if(!pairAns[idx])pairAns[idx]={winner:null,intensity:1};
-  pairAns[idx].winner=w;
-  if(w==='equal')pairAns[idx].intensity=0;
+// User memilih kiri/kanan/sama untuk pasang tertentu
+function dssSelWinner(pairKey, pilihan){
+  console.log('🟡 [AHP] User pilih:', pairKey, '=', pilihan);
+  pairAns[pairKey]=pilihan;
+  console.log('🟡 [AHP] pairAns sekarang:', JSON.parse(JSON.stringify(pairAns)));
+  // Re-render pertanyaan yang sedang tampil
+  const idx=PAIRS.findIndex(p=>p.key===pairKey);
   document.getElementById('dssBody').innerHTML=dssPair(idx);
   updateDSSProgress();setTimeout(animW,50);
 }
-function dssSetInt(idx,k){
-  if(!pairAns[idx])pairAns[idx]={winner:null,intensity:1};
-  pairAns[idx].intensity=k;
-  document.getElementById('dssBody').innerHTML=dssPair(idx);
-  updateDSSProgress();setTimeout(animW,50);
+function dssNextPair(idx){
+  const key=PAIRS[idx].key;
+  if(!pairAns[key])return;
+  // VS 1-3 → screen 1-3; setelah pertanyaan ke-3 → screen 4 (loading)
+  dssScreen = idx < 2 ? idx+2 : 4;
+  renderDSS();
 }
-function dssNextPair(idx){if(!pairAns[idx])return;dssScreen=idx+2;renderDSS();}
 
+// ─── Pertanyaan Preferensi (Bagian 2 dari Kuesioner) ──────────
+// Sinkron dengan 4 kriteria baru: Harga, Jenis Hidangan, Nutrisi, Rasa
 const PREF_QS=[
   {cid:'harga',icon:'💰',q:'Gimana kondisi kantongmu hari ini?',hint:'Jujur aja, ini rahasia kita berdua! 😄',
-   opts:[{v:1,i:'😅',l:'Lagi hemat',s:'Budget tipis'},{v:3,i:'😊',l:'Biasa aja',s:'Budget normal'},{v:5,i:'🤑',l:'Ada rezeki',s:'Nggak masalah mahal'}]},
-  {cid:'rasa',icon:'😋',q:'Lagi pengen rasa yang gimana?',hint:'Pilih sesuai mood makanmu sekarang.',
-   opts:[{v:1,i:'😐',l:'Biasa aja',s:'Yang penting kenyang'},{v:3,i:'😋',l:'Agak enak',s:'Lumayan pengen enak'},{v:5,i:'🤤',l:'Enak banget!',s:'Mood makan enak'}]},
-  {cid:'sehat',icon:'🥗',q:'Lagi peduli sama makanan sehat?',hint:'Nggak ada yang menghakimi hehe 😇',
-   opts:[{v:1,i:'🍟',l:'Nggak terlalu',s:'Yang penting enak'},{v:3,i:'🥙',l:'Agak penting',s:'Lumayan jaga'},{v:5,i:'🥗',l:'Penting banget',s:'Lagi jaga makan'}]},
-  {cid:'kenyang',icon:'💪',q:'Butuh kenyang berapa lama?',hint:'Pilih sesuai aktivitasmu setelah makan.',
-   opts:[{v:1,i:'🐦',l:'Ringan aja',s:'Nggak mau terlalu kenyang'},{v:3,i:'🙂',l:'Normal',s:'Cukup sampai sore'},{v:5,i:'🏋️',l:'Kenyang lama!',s:'Aktivitas panjang setelah ini'}]},
+   opts:[{v:1,i:'😅',l:'Lagi hemat',s:'Yang penting murah'},{v:2,i:'😊',l:'Biasa aja',s:'Budget normal'},{v:3,i:'🤑',l:'Ada rezeki!',s:'Nggak masalah harga'}]},
+  {cid:'jenis_hidangan',icon:'🍲',q:'Pengen makan hidangan yang gimana?',hint:'Sesuaikan dengan cuaca dan kondisimu sekarang.',
+   opts:[{v:1,i:'🍳',l:'Yang Kering/Goreng',s:'Nasi goreng, mie goreng'},{v:2,i:'🥣',l:'Yang Berkuah/Hangat',s:'Soto, rawon, kuah'}]},
+  {cid:'nutrisi',icon:'🥩',q:'Lagi butuh protein jenis apa?',hint:'Pilih sesuai kebutuhan gizimu.',
+   opts:[{v:1,i:'🥚',l:'Telur/Campuran',s:'Telur & bahan campuran'},{v:2,i:'🐔',l:'Protein Ayam',s:'Soto ayam, dll'},{v:3,i:'🥩',l:'Protein Sapi',s:'Rawon, daging sapi'}]},
+  {cid:'rasa_dominan',icon:'🌶️',q:'Lagi mood rasa yang seperti apa?',hint:'Pilih yang paling bikin ngiler sekarang.',
+   opts:[{v:1,i:'🥣',l:'Gurih Segar/Bening',s:'Soto, kuah bening'},{v:2,i:'🌶️',l:'Gurih Pedas',s:'Nasi goreng, mie pedas'}]},
 ];
 
 function dssPref(idx){
@@ -772,7 +794,9 @@ function dssSelPref(cid,v,idx){
   document.getElementById('dssBody').innerHTML=dssPref(idx);
   updateDSSProgress();setTimeout(animW,50);
 }
-function dssNextPref(idx){dssScreen=idx<3?idx+8:11;renderDSS();}
+// Navigasi preferensi: screen 5-8
+// Setelah preferensi ke-4 (idx=3) → screen 9 (loading)
+function dssNextPref(idx){dssScreen=idx<3?idx+6:9;renderDSS();}
 
 function dssLoading(){
   return`<div style="text-align:center;padding:2rem 1rem;">
@@ -788,50 +812,96 @@ function dssLoading(){
   </div>`;
 }
 
-function runDSSLoading(){
+async function runDSSLoading(){
   const steps=document.querySelectorAll('.load-step');
+  // Animasi loading steps: setiap 600ms satu step muncul
   [400,1000,1600,2200].forEach((d,i)=>setTimeout(()=>{if(steps[i])steps[i].classList.add('done');},d));
-  setTimeout(()=>{dssScreen=12;renderDSS();},2900);
+  
+  // Kirim matriks ke backend API sambil animasi loading berjalan
+  dssApiResult = await fetchDSSResult();
+  
+  // Pastikan minimal 2.9 detik agar UX terasa smooth
+  setTimeout(()=>{dssScreen=5;renderDSS();},2900);
 }
 
 function dssResult(){
-  const w=ahpW(buildMatrix()),ranked=calcScores(w),best=ranked[0],mx=ranked[0].score;
+  // Ambil hasil dari cache API yang sudah di-fetch di runDSSLoading()
+  const res = dssApiResult;
   const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
   const fills=['rf1','rf2','rf3','rfn','rfn'];
+
+  // ── Jika API gagal / tidak konsisten ──────────────────────
+  if(!res || !res.success){
+    const errMsg = res?.error || 'Terjadi kesalahan saat menghubungi server.';
+    return`<div style="text-align:center;padding:2rem 1rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">⚠️</div>
+      <div style="font-weight:700;font-size:1.1rem;color:var(--maroon);margin-bottom:.8rem;">Jawaban Kurang Konsisten</div>
+      <div style="font-size:.88rem;color:var(--text-light);line-height:1.6;margin-bottom:1.5rem;background:#fef2f2;border-radius:12px;padding:1rem;">${errMsg}</div>
+      <div style="font-size:.78rem;color:#888;background:#f9f9f9;border-radius:10px;padding:.8rem;margin-bottom:1.5rem;">💡 <strong>Tips:</strong> Coba lebih konsisten saat membandingkan kriteria.<br>Misalnya, jika A > B dan B > C, maka A harus > C juga.</div>
+      <button class="btn-primary" onclick="resetDSS()">🔄 Coba Lagi</button>
+    </div>`;
+  }
+
+  // ── Ambil data dari response API ──────────────────────────
+  const ranked = res.ranked;       // Array menu terurut
+  const weights = res.weights;     // Bobot kriteria dari AHP
+  const consistency = res.consistency;
+  const best = ranked[0];
+
+  // Cari emoji menu di data MENUS (menu dari backend landing page)
+  const getEmoji = (namaMenu) => {
+    const m = MENUS.find(x => x.name.toLowerCase() === namaMenu.toLowerCase());
+    return m ? (m.emoji||'🍽️') : '🍽️';
+  };
+
+  // Deskripsi skor 3 kriteria
+  const skorDesc = {
+    skor_rasa:           {1:'Ringan',2:'Gurih Segar',3:'Gurih Pedas'},
+    skor_nutrisi:        {1:'Rendah',2:'Protein Telur',3:'Protein Daging'},
+    skor_jenis_hidangan: {1:'Kering/Goreng',2:'Campuran',3:'Berkuah/Hangat'},
+  };
+  const wArr=[weights.rasa||0, weights.nutrisi||0, weights.jenis_hidangan||0];
 
   return`<div class="winner-banner">
     <span class="w-crown">🏆</span>
     <div class="w-sub">Rekomendasi terbaik untukmu</div>
-    <div class="w-name">${best.emoji} ${best.name}</div>
-    <div class="w-pct">Cocok ${Math.round((best.score/mx)*100)}% dengan preferensimu</div>
-    <div class="w-tags">${best.tags.map(t=>`<span class="w-tag">${t}</span>`).join('')}</div>
+    <div class="w-name">${getEmoji(best.nama_menu)} ${best.nama_menu}</div>
+    <div class="w-pct">Cocok ${best.match_percentage}% dengan preferensimu</div>
+    <div class="w-tags"><span class="w-tag">${best.harga_format}</span><span class="w-tag">Skor: ${best.final_score.toFixed(3)}</span></div>
   </div>
 
   <div style="background:var(--gold-pale);border:1px solid rgba(201,168,76,.3);border-radius:14px;padding:1.2rem;margin-bottom:1rem;">
-    <div style="font-weight:700;font-size:.88rem;color:var(--maroon-dark);margin-bottom:.7rem;">💡 Kenapa ${best.name}?</div>
-    ${CRITERIA.map((c,i)=>`<div style="display:flex;align-items:center;gap:.7rem;padding:.4rem 0;border-bottom:1px solid rgba(201,168,76,.15);">
-      <span style="font-size:1.2rem">${c.icon}</span>
-      <div style="flex:1;font-size:.8rem;color:var(--text-mid)"><strong>${c.name}</strong> — Bobot ${Math.round(w[i]*100)}%, Rating ${best[c.id]}/5</div>
-      <span>${'⭐'.repeat(Math.round(best[c.id]))}</span>
-    </div>`).join('')}
+    <div style="font-weight:700;font-size:.88rem;color:var(--maroon-dark);margin-bottom:.7rem;">💡 Kenapa ${best.nama_menu}?</div>
+    ${CRITERIA.map((c,i)=>{
+      const sMap=['skor_rasa','skor_nutrisi','skor_jenis_hidangan'];
+      const sk = best[sMap[i]]||0;
+      const desc = (skorDesc[sMap[i]]||{})[sk] || '-';
+      return `<div style="display:flex;align-items:center;gap:.7rem;padding:.4rem 0;border-bottom:1px solid rgba(201,168,76,.15);">
+        <span style="font-size:1.2rem">${c.icon}</span>
+        <div style="flex:1;font-size:.8rem;color:var(--text-mid)"><strong>${c.name}</strong><br><span style="color:#888">${desc}</span></div>
+        <span style="font-size:.78rem;font-weight:700;color:var(--maroon);background:rgba(128,0,0,.08);padding:.15rem .5rem;border-radius:6px;">Bobot ${Math.round(wArr[i]*100)}%</span>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:.6rem;font-size:.72rem;color:#aaa;">CR = ${consistency.cr.toFixed(4)} ✅ Konsisten</div>
   </div>
 
   <div style="background:white;border-radius:14px;padding:1.2rem;box-shadow:var(--shadow-sm);margin-bottom:1rem;">
     <div style="font-weight:700;font-size:.88rem;color:var(--text);margin-bottom:.8rem;">📋 Peringkat Semua Menu</div>
     <div class="rank-list">
       ${ranked.map((m,r)=>`<div class="rank-row">
-        <div class="rank-emoji">${m.emoji}</div>
+        <div class="rank-emoji">${getEmoji(m.nama_menu)}</div>
         <div class="rank-info">
-          <div class="rank-name">${m.name}</div>
-          <div class="rank-bar-track"><div class="${fills[r]} rank-bar-fill" data-w="${((m.score/mx)*100).toFixed(0)}%" style="width:0%"></div></div>
-          <div class="rank-pct-label">Kecocokan: ${Math.round((m.score/mx)*100)}%</div>
+          <div class="rank-name">${m.nama_menu}</div>
+          <div style="font-size:.72rem;color:#aaa;margin-bottom:.25rem;">${m.harga_format}</div>
+          <div class="rank-bar-track"><div class="${fills[r]||'rfn'} rank-bar-fill" data-w="${m.match_percentage}%" style="width:0%"></div></div>
+          <div class="rank-pct-label">Kecocokan: ${m.match_percentage}%</div>
         </div>
-        <div class="rank-medal">${medals[r]}</div>
+        <div class="rank-medal">${medals[r]||'🍽️'}</div>
       </div>`).join('')}
     </div>
   </div>
 
-  <button class="btn-order-now" onclick="closeDSSOpenOrder('${best.name}')">🛒 Pesan ${best.name} Sekarang!</button>
+  <button class="btn-order-now" onclick="closeDSSOpenOrder('${best.nama_menu}')">🛒 Pesan ${best.nama_menu} Sekarang!</button>
   <button class="btn-restart-dss" onclick="resetDSS()">🔄 Coba Lagi dengan Jawaban Lain</button>`;
 }
 
@@ -840,8 +910,15 @@ function closeDSSOpenOrder(recName){
   setTimeout(()=>{openOrder();},300);
 }
 
-function resetDSS(){pairAns=Array(6).fill(null);prefAns={harga:null,rasa:null,sehat:null,kenyang:null};dssScreen=0;renderDSS();}
+// Reset semua state DSS ke kondisi awal
+function resetDSS(){
+  pairAns={rasa_vs_nutrisi:null,rasa_vs_jenis:null,nutrisi_vs_jenis:null};
+  dssScreen=0;
+  dssApiResult=null;
+  renderDSS();
+}
 function dssGo(s){dssScreen=s;renderDSS();}
+
 
 /* ═══════════════════════════════════════
    SHARED UTILS

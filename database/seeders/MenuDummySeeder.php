@@ -5,59 +5,58 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\MenuItem;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
+/**
+ * MenuDummySeeder — Data Menu Markesot (sesuai menu asli kantin)
+ */
 class MenuDummySeeder extends Seeder
 {
     public function run(): void
     {
-        // Ambil ID kategori berdasarkan nama
-        $catMain    = Category::where('name', 'Makanan Utama')->first()?->id;
-        $catSnack   = Category::where('name', 'Makanan Ringan')->first()?->id;
-        $catDrink   = Category::where('name', 'Minuman')->first()?->id;
+        $catMain  = Category::where('name', 'Makanan Utama')->first()?->id;
+        $catDrink = Category::where('name', 'Minuman')->first()?->id;
 
-        if (!$catMain || !$catSnack || !$catDrink) {
-            $this->command->warn('Kategori belum tersedia. Jalankan CategorySeeder terlebih dahulu.');
+        if (!$catMain) {
+            $this->command->warn('⚠️  Kategori belum tersedia. Jalankan CategorySeeder terlebih dahulu.');
             return;
         }
 
         $items = [
-            // Makanan Utama
-            ['category_id' => $catMain, 'name' => 'Nasi Goreng Spesial',   'price' => 15000, 'description' => 'Nasi goreng dengan telur mata sapi, ayam suwir, dan kerupuk renyah.'],
-            ['category_id' => $catMain, 'name' => 'Mie Goreng Jawa',       'price' => 13000, 'description' => 'Mie goreng khas Jawa dengan bumbu kecap manis dan sayuran segar.'],
-            ['category_id' => $catMain, 'name' => 'Ayam Geprek Sambal',    'price' => 18000, 'description' => 'Ayam geprek crispy dengan sambal bawang merah yang pedas menggoda.'],
-            ['category_id' => $catMain, 'name' => 'Soto Ayam Lamongan',    'price' => 14000, 'description' => 'Kuah bening kaya rempah dengan suwiran ayam dan bihun.'],
-            ['category_id' => $catMain, 'name' => 'Nasi Rendang Padang',   'price' => 20000, 'description' => 'Rendang sapi empuk dengan santan kental dan bumbu rempah pilihan.'],
-            ['category_id' => $catMain, 'name' => 'Bakso Urat Jumbo',      'price' => 16000, 'description' => 'Bakso daging sapi besar isi urat kenyal dalam kuah kaldu hangat.'],
-            ['category_id' => $catMain, 'name' => 'Rawon Surabaya',        'price' => 19000, 'description' => 'Sup daging sapi hitam khas Surabaya dengan kluwek asli.'],
-
-            // Makanan Ringan
-            ['category_id' => $catSnack, 'name' => 'Tahu Crispy Pedas',    'price' => 8000,  'description' => 'Tahu goreng garing dengan taburan cabai dan bumbu rempah.'],
-            ['category_id' => $catSnack, 'name' => 'Pisang Goreng Keju',   'price' => 10000, 'description' => 'Pisang goreng renyah dengan lelehan keju mozzarella.'],
-            ['category_id' => $catSnack, 'name' => 'Dimsum Ayam',          'price' => 12000, 'description' => 'Dimsum kukus isi ayam cincang dengan saus sambal kecap.'],
-
-            // Minuman
-            ['category_id' => $catDrink, 'name' => 'Es Teh Manis',        'price' => 5000,  'description' => 'Teh manis dingin segar khas warung kampus.'],
-            ['category_id' => $catDrink, 'name' => 'Es Jeruk Peras',      'price' => 7000,  'description' => 'Jeruk peras segar langsung dari buah asli.'],
-            ['category_id' => $catDrink, 'name' => 'Kopi Susu Gula Aren', 'price' => 12000, 'description' => 'Espresso shot dengan susu segar dan gula aren pilihan.'],
-            ['category_id' => $catDrink, 'name' => 'Jus Alpukat',         'price' => 10000, 'description' => 'Alpukat blended lembut dengan susu coklat dan madu.'],
-            ['category_id' => $catDrink, 'name' => 'Es Cendol Dawet',     'price' => 8000,  'description' => 'Cendol pandan dengan santan kelapa dan gula merah.'],
-            ['category_id' => $catDrink, 'name' => 'Lemon Tea',           'price' => 8000,  'description' => 'Teh hitam segar dengan perasan lemon dan madu alami.'],
-            ['category_id' => $catDrink, 'name' => 'Matcha Latte',        'price' => 14000, 'description' => 'Green tea matcha premium dengan susu segar.'],
+            // ═══ MAKANAN UTAMA — 5 Menu Andalan Markesot ═══
+            ['category_id' => $catMain, 'name' => 'Nasi Goreng',          'price' => 10000, 'is_featured' => true,  'description' => 'Nasi goreng spesial dengan telur mata sapi, irisan ayam, kerupuk, dan acar segar.'],
+            ['category_id' => $catMain, 'name' => 'Mie Dok Dok Goreng',   'price' => 12000, 'is_featured' => true,  'description' => 'Mie goreng khas Markesot dengan bumbu pedas spesial, telur, dan sayuran.'],
+            ['category_id' => $catMain, 'name' => 'Mie Dok Dok Kuah',     'price' => 12000, 'is_featured' => true,  'description' => 'Mie kuah pedas Markesot dengan kaldu gurih, telur rebus, dan sayuran segar.'],
+            ['category_id' => $catMain, 'name' => 'Soto Ayam Kampung',    'price' => 12000, 'is_featured' => true,  'description' => 'Soto ayam kampung asli dengan kuah bening rempah, suwiran ayam, dan bihun.'],
+            ['category_id' => $catMain, 'name' => 'Nasi Rawon',           'price' => 13000, 'is_featured' => true,  'description' => 'Rawon daging sapi dengan kuah hitam kluwek, tauge, telur asin, dan sambal.'],
         ];
+
+        // ═══ MINUMAN (jika kategori tersedia) ═══
+        if ($catDrink) {
+            $drinks = [
+                ['category_id' => $catDrink, 'name' => 'Es Teh Manis',    'price' => 3000, 'is_featured' => false, 'description' => 'Teh manis dingin segar, pelepas dahaga andalan mahasiswa.'],
+                ['category_id' => $catDrink, 'name' => 'Es Jeruk',        'price' => 5000, 'is_featured' => false, 'description' => 'Jeruk peras segar dengan es batu, manis alami.'],
+                ['category_id' => $catDrink, 'name' => 'Teh Hangat',      'price' => 2000, 'is_featured' => false, 'description' => 'Teh hangat manis, cocok untuk menemani makan siang.'],
+            ];
+            $items = array_merge($items, $drinks);
+        }
 
         foreach ($items as $item) {
             MenuItem::updateOrCreate(
                 ['name' => $item['name']],
                 [
                     'category_id'   => $item['category_id'],
+                    'slug'          => Str::slug($item['name']),
                     'price'         => $item['price'],
                     'description'   => $item['description'],
                     'unit'          => 'porsi',
                     'is_available'  => true,
-                    'is_featured'   => false,
+                    'is_featured'   => $item['is_featured'] ?? false,
                     'min_order_qty' => 1,
                 ]
             );
         }
+
+        $this->command->info('MenuDummySeeder: ' . count($items) . ' menu Markesot berhasil ditambahkan.');
     }
 }

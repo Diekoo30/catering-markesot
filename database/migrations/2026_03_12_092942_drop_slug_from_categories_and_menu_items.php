@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Trik jika menggunakan SQLite (laptop Fachry), lewati fungsi ini agar tidak error
+        if (config('database.default') === 'sqlite') {
+            return;
+        }
+
         Schema::table('categories', function (Blueprint $table) {
             $table->dropColumn('slug');
         });
@@ -24,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (config('database.default') === 'sqlite') {
+            return;
+        }
+
         Schema::table('categories', function (Blueprint $table) {
             $table->string('slug')->unique()->nullable();
         });

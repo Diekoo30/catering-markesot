@@ -12,7 +12,7 @@ class MenuItem extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'category_id','name','description','price',
+        'category_id','name','slug','description','price',
         'unit','image','is_available','is_featured','min_order_qty','notes',
     ];
 
@@ -31,6 +31,11 @@ class MenuItem extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function ahpScores(): HasMany
+    {
+        return $this->hasMany(AhpAlternativeScore::class);
     }
 
     public function getFormattedPriceAttribute(): string
