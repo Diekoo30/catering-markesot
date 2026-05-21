@@ -137,14 +137,16 @@ class ViewOrder extends ViewRecord
                             ->formatStateUsing(function ($state, $record) {
                                 $method = $record->payments()->latest()->first()?->payment_method ?? $state;
                                 if ($method === 'cash') return 'Tunai';
-                                if ($method === 'bank' && $record->dp_percentage >= 100) return 'Transfer Lunas';
-                                return 'DP Transfer';
+                                if ($method === 'transfer' && $record->dp_percentage >= 100) return 'Transfer Lunas';
+                                if ($method === 'transfer') return 'Transfer DP';
+                                return 'Tidak Diketahui';
                             })
                             ->color(function ($state, $record) {
                                 $method = $record->payments()->latest()->first()?->payment_method ?? $state;
                                 if ($method === 'cash') return 'success';
-                                if ($method === 'bank' && $record->dp_percentage >= 100) return 'info';
-                                return 'warning';
+                                if ($method === 'transfer' && $record->dp_percentage >= 100) return 'info';
+                                if ($method === 'transfer') return 'warning';
+                                return 'gray';
                             }),
                         Infolists\Components\TextEntry::make('total_amount')
                             ->label('Total Pesanan')

@@ -7,7 +7,6 @@ use App\Models\Category;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -35,6 +34,12 @@ class CategoryResource extends Resource
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
 
+                TextInput::make('unit')
+                    ->label('Satuan')
+                    ->required()
+                    ->default('porsi')
+                    ->maxLength(50),
+
                 Toggle::make('is_active')
                     ->label('Aktif')
                     ->default(true),
@@ -56,11 +61,11 @@ class CategoryResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('menuItems_count')
-                    ->label('Jumlah Menu')
-                    ->counts('menuItems')
+                Tables\Columns\TextColumn::make('unit')
+                    ->label('Satuan')
                     ->badge()
-                    ->color('info'),
+                    ->color('gray'),
+
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Aktif')

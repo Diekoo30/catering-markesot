@@ -1,0 +1,83 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    container_name: catering-app-dev
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - catering
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: catering-nginx-dev
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - catering
+
+  mysql:
+    image: mysql:8.4.9
+    container_name: catering-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-catering}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-markesot}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-123}
+    ports:
+      - "${DB_FORWARD_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - catering
+
+  redis:
+    image: redis:7-alpine
+    container_name: catering-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_FORWARD_PORT:-6379}:6379"
+    networks:
+      - catering
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    container_name: catering-queue-dev
+    restart: unless-stopped
+    working_dir: /var/www
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    volumes:
+      - ./:/var/www
+    env_file:
+      - .env
+    depends_on:
+      - app
+      - mysql
+      - redis
+    networks:
+      - catering
+
+networks:
+  catering:
+
+volumes:
+  mysql_data:

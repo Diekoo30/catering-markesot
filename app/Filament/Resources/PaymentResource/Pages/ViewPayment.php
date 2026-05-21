@@ -103,12 +103,7 @@ class ViewPayment extends ViewRecord
 
                 Infolists\Components\TextEntry::make('payment_method')
                     ->label('Metode')
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'transfer' => 'Transfer Bank',
-                        'qris'     => 'QRIS',
-                        'cash'     => 'Tunai',
-                        default    => $state ?? '—',
-                    }),
+                    ->formatStateUsing(fn ($state, Payment $record) => PaymentResource::paymentMethodLabel($state, $record)),
 
                 Infolists\Components\TextEntry::make('bank_name')
                     ->label('Bank')

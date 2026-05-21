@@ -19,11 +19,9 @@ return new class extends Migration
             $table->string('slug', 191)->unique();
             $table->text('description')->nullable();
             $table->decimal('price', 12, 2);
-            $table->string('unit', 50)->default('porsi');
             $table->string('image')->nullable();
             $table->boolean('is_available')->default(true);
             $table->boolean('is_featured')->default(false);
-            $table->integer('min_order_qty')->default(1);
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

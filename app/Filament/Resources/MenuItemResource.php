@@ -10,7 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Set;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -38,6 +38,10 @@ class MenuItemResource extends Resource
                     ->relationship('category', 'name')
                     ->searchable()
                     ->preload()
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set) {
+                        $set('category_unit', Category::find($state)?->unit ?? 'porsi');
+                    })
                     ->nullable(),
 
                 TextInput::make('name')
@@ -61,22 +65,20 @@ class MenuItemResource extends Resource
                     ->prefix('Rp')
                     ->minValue(0),
 
-                TextInput::make('unit')
+                TextInput::make('category_unit')
                     ->label('Satuan')
-                    ->required()
                     ->default('porsi')
+                    ->readOnly()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(function (?MenuItem $record, Set $set) {
+                        $set('category_unit', $record?->category?->unit ?? 'porsi');
+                    })
                     ->maxLength(50),
-
-                TextInput::make('min_order_qty')
-                    ->label('Min. Pemesanan')
-                    ->numeric()
-                    ->default(1)
-                    ->minValue(1),
-            ])->columns(3),
+            ])->columns(2),
 
             Section::make('Gambar & Status')->schema([
                 FileUpload::make('image')
-                    ->label('Foto Menu')
+                    ->label('Foto Menu (maksimal 2 mb)')
                     ->image()
                     ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/heic'])
                     ->imageEditor()
@@ -118,8 +120,9 @@ class MenuItemResource extends Resource
                     ->money('IDR')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('unit')
+                Tables\Columns\TextColumn::make('category.unit')
                     ->label('Satuan')
+                    ->getStateUsing(fn (MenuItem $record) => $record->category?->unit ?? 'porsi')
                     ->color('gray'),
 
                 Tables\Columns\IconColumn::make('is_available')

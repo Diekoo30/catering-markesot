@@ -1,8 +1,9 @@
 *.log
+*.sql
 .DS_Store
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -18,7 +19,10 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/temp-laravel
 /vendor
+/backup-*.sql
+/config/app_old.php
 Homestead.json
 Homestead.yaml
 Thumbs.db

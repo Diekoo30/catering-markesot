@@ -91,6 +91,13 @@
             <div style="font-size:13px; color:#888; line-height:1.6;">
               Jika ada pertanyaan, hubungi kami via WhatsApp<br>atau datang langsung ke kantin.
             </div>
+            @if($companyWhatsappUrl)
+            <div style="margin-top:14px;">
+              <a href="{{ $companyWhatsappUrl }}" target="_blank" style="display:inline-block; background:#25D366; color:#ffffff; text-decoration:none; font-size:13px; font-weight:800; padding:10px 18px; border-radius:999px;">
+                Hubungi WhatsApp Markesot
+              </a>
+            </div>
+            @endif
             <div style="font-size:13px; color:#888; margin-top:8px;">
               Terima kasih telah memilih <strong style="color:#800000;">Markesot</strong>!
             </div>

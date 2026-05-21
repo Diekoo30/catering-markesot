@@ -13,11 +13,11 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -111,11 +111,11 @@ class OrderResource extends Resource
                             ->searchable()
                             ->live()
                             ->afterStateUpdated(function ($state, Set $set) {
-                                $menu = MenuItem::find($state);
+                                $menu = MenuItem::with('category')->find($state);
                                 if ($menu) {
                                     $set('menu_name',  $menu->name);
                                     $set('menu_price', $menu->price);
-                                    $set('unit',       $menu->unit);
+                                    $set('unit',       $menu->category?->unit ?? 'porsi');
                                     $set('subtotal',   $menu->price * 1);
                                 }
                             })

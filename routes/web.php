@@ -5,6 +5,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\AuthController;
 
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'service' => 'catering-markesot',
+    ]);
+})->name('health');
+
 Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::post('/order', [LandingController::class, 'store']);
 Route::get('/bank-info', [LandingController::class, 'bankInfo']);
@@ -31,4 +38,3 @@ Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->n
 Route::post('/forgot-password/send', [AuthController::class, 'sendOtp'])->name('forgot.password.send');
 Route::post('/forgot-password/verify', [AuthController::class, 'verifyOtp'])->name('forgot.password.verify');
 Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword'])->name('forgot.password.reset');
-

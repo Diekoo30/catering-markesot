@@ -13,14 +13,13 @@ class MenuItem extends Model
 
     protected $fillable = [
         'category_id','name','description','price',
-        'unit','image','is_available','is_featured','min_order_qty','notes',
+        'image','is_available','is_featured','notes',
     ];
 
     protected $casts = [
         'price'         => 'decimal:2',
         'is_available'  => 'boolean',
         'is_featured'   => 'boolean',
-        'min_order_qty' => 'integer',
     ];
 
     public function category(): BelongsTo

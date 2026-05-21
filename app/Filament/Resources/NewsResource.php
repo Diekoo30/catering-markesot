@@ -47,9 +47,10 @@ class NewsResource extends Resource
                         ->image()
                         ->multiple()
                         ->maxFiles(5)
+                        ->maxSize(2048)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])
                         ->disk('public')
                         ->directory('news')
-                        ->maxSize(2048)
                         ->columnSpanFull(),
 
                     Toggle::make('is_active')

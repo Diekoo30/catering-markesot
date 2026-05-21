@@ -1,0 +1,123 @@
+services:
+  app:
+    image: catering-markesot-app:production
+    working_dir: /var/www
+    configs:
+      - source: app_env
+        target: /var/www/.env
+    volumes:
+      - app_storage:/var/www/storage
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      resources:
+        limits:
+          memory: 512M
+
+  nginx:
+    image: catering-markesot-web:production
+    ports:
+      - target: 80
+        published: 8080
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - app_storage:/var/www/storage:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      update_config:
+        parallelism: 1
+        order: start-first
+        failure_action: rollback
+
+  mysql:
+    image: mysql:8.4.9
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-catering}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in deployment environment}
+      MYSQL_USER: ${DB_USERNAME:-markesot}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deployment environment}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+networks:
+  backend:
+    driver: overlay
+    attachable: true
+
+volumes:
+  app_storage:
+  mysql_data:
+  redis_data:
+
+configs:
+  app_env:
+    external: true
+    name: ${APP_ENV_CONFIG:-app_env}

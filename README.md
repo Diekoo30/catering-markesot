@@ -7,7 +7,6 @@ Catering Markesot adalah sistem manajemen pemesanan catering modern yang dibangu
 ### 🧑‍💻 Untuk Pelanggan (Customer)
 *   **Landing Page Dinamis:** Antarmuka pelanggan yang modern dan responsif.
 *   **Pemesanan Online:** Fitur keranjang belanja (shopping cart) dan checkout yang mudah digunakan.
-*   **Pembayaran QRIS Dinamis & Transfer Bank:** Dukungan pemindaian QRIS dan upload bukti transfer secara langsung.
 *   **Login & Registrasi:** Mendukung autentikasi standar maupun menggunakan **Google Sign-In** (Socialite).
 *   **Lupa Password (OTP):** Sistem reset password yang aman menggunakan verifikasi OTP via Email.
 *   **Berita & Aktivitas:** Menampilkan update terbaru dari catering dengan fitur *infinite auto-scroll* untuk pengalaman yang menyenangkan.
@@ -16,7 +15,7 @@ Catering Markesot adalah sistem manajemen pemesanan catering modern yang dibangu
 ### 🛡️ Untuk Admin (Filament Panel)
 *   **Manajemen Pesanan:** Verifikasi bukti pembayaran (Proof of Payment), update status pesanan, dan konversi data pesanan ke format Excel.
 *   **Manajemen Menu & Kategori:** Menambah, mengubah, dan menghapus menu beserta kategorinya.
-*   **Pengaturan Sistem (Manage Settings):** Mengatur informasi perusahaan (No. Telp, Alamat, Jam Operasional), konfigurasi persentase DP, hingga metode pembayaran (Bank & QRIS string).
+*   **Pengaturan Sistem (Manage Settings):** Mengatur informasi perusahaan (No. Telp, Alamat, Jam Operasional), konfigurasi persentase DP, hingga metode pembayaran (Bank string).
 *   **Manajemen Pengguna:** Mengatur hak akses pengguna dan mengelola password registrasi admin.
 *   **Log Aktivitas:** Menggunakan `spatie/laravel-activitylog` untuk memantau perubahan data pada sistem secara rinci.
 
@@ -90,7 +89,7 @@ npm run build
 *(Gunakan `npm run dev` jika Anda ingin melakukan perubahan pada tampilan dan melihat hasilnya secara real-time).*
 
 ### 7. Buat Symbolic Link Storage (Penting untuk Gambar)
-Aplikasi ini banyak menggunakan fitur upload gambar (Menu, Bukti Transfer, QRIS). Jalankan perintah berikut agar gambar dapat diakses oleh publik:
+Aplikasi ini banyak menggunakan fitur upload gambar (Menu, Bukti Transfer). Jalankan perintah berikut agar gambar dapat diakses oleh publik:
 ```bash
 php artisan storage:link
 ```

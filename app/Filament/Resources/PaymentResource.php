@@ -26,6 +26,29 @@ class PaymentResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Transaksi';
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function paymentMethodLabel(?string $state, ?Payment $record = null): string
+    {
+        return match ($state) {
+            'cash' => 'Tunai',
+            'transfer' => static::transferPaymentLabel($record),
+            'qris' => 'QRIS',
+            default => $state ?? '—',
+        };
+    }
+
+    protected static function transferPaymentLabel(?Payment $record = null): string
+    {
+        if ($record?->type === 'settlement') {
+            return 'Transfer Pelunasan';
+        }
+
+        if ((float) ($record?->order?->dp_percentage ?? 0) >= 100) {
+            return 'Transfer Lunas';
+        }
+
+        return 'Transfer DP';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -135,11 +158,7 @@ class PaymentResource extends Resource
 
                 Tables\Columns\TextColumn::make('payment_method')
                     ->label('Metode')
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'transfer' => 'Transfer Bank',
-                        'cash'     => 'Tunai',
-                        default    => $state ?? '—',
-                    }),
+                    ->formatStateUsing(fn ($state, Payment $record) => static::paymentMethodLabel($state, $record)),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')

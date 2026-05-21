@@ -36,6 +36,7 @@ class LandingController extends Controller
                 'name'    => $q->name,
                 'emoji'   => $notes['emoji'] ?? '🍽️',
                 'price'   => $q->price,
+                'unit'    => $q->category?->unit ?? 'porsi',
                 'cat'     => str_contains(strtolower($q->category?->name ?? ''), 'minuman') ? 'drink' : 'food',
                 'category_name' => $q->category?->name ?? 'Lainnya',
                 'cat_sort_order'=> $q->category?->sort_order ?? 999,
@@ -180,7 +181,8 @@ class LandingController extends Controller
 
             $total = 0;
             foreach ($validated['items'] as $item) {
-                $menu     = MenuItem::findOrFail($item['menu_item_id']);
+                $menu     = MenuItem::with('category')->findOrFail($item['menu_item_id']);
+                $unit     = $menu->category?->unit ?? 'porsi';
                 $subtotal = $menu->price * $item['qty'];
                 $total   += $subtotal;
 
@@ -189,6 +191,7 @@ class LandingController extends Controller
                     'menu_name'    => $menu->name,
                     'menu_price'   => $menu->price,
                     'quantity'     => $item['qty'],
+                    'unit'         => $unit,
                     'subtotal'     => $subtotal,
                     'notes'        => $item['notes'] ?? null,
                 ]);

@@ -23,7 +23,7 @@
     </div>
     <div class="status-badge status-{{ $order->status }}">
       @if($order->status == 'pending')
-        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Nunggu Verifikasi
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Menunggu Verifikasi
       @elseif($order->status == 'dp_paid')
         <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg> DP Diterima
       @elseif($order->status == 'confirmed')
