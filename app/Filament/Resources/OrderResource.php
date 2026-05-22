@@ -358,8 +358,16 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->modalHeading('Verifikasi Pembayaran')
-                    ->visible(fn (Order $record) => $record->status === 'pending')
-                    ->form(function(Order $record) {
+                    ->visible(fn (?Order $record) => $record?->status === 'pending')
+                    ->form(function (?Order $record) {
+                        if (! $record || $record->status !== 'pending') {
+                            return [
+                                \Filament\Forms\Components\Placeholder::make('stale_order')
+                                    ->label('Pesanan berubah')
+                                    ->content('Pesanan ini sudah berubah atau dibatalkan oleh pelanggan. Silakan muat ulang halaman untuk melihat data terbaru.'),
+                            ];
+                        }
+
                         $payment = $record->payments()->latest()->first();
                         $isCash = $payment?->payment_method === 'cash';
 
@@ -446,7 +454,19 @@ class OrderResource extends Resource
 
                         return $components;
                     })
-                    ->action(function (Order $record, array $data) {
+                    ->action(function (?Order $record, array $data) {
+                        $record = $record?->fresh();
+
+                        if (! $record || $record->status !== 'pending') {
+                            Notification::make()
+                                ->title('Pesanan sudah berubah')
+                                ->body('Pesanan ini sudah berubah atau dibatalkan oleh pelanggan. Silakan muat ulang halaman untuk melihat data terbaru.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
                         $payment = $record->payments()->latest()->first();
                         
                         if ($data['action'] === 'approve') {
@@ -471,8 +491,20 @@ class OrderResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Tandai Selesai')
                     ->modalDescription('Apakah Anda yakin pesanan ini sudah selesai dan siap diambil/diantar?')
-                    ->visible(fn (Order $record) => in_array($record->status, ['confirmed', 'dp_paid']))
-                    ->action(function (Order $record) {
+                    ->visible(fn (?Order $record) => in_array($record?->status, ['confirmed', 'dp_paid']))
+                    ->action(function (?Order $record) {
+                        $record = $record?->fresh();
+
+                        if (! $record || ! in_array($record->status, ['confirmed', 'dp_paid'])) {
+                            Notification::make()
+                                ->title('Pesanan sudah berubah')
+                                ->body('Pesanan ini sudah dibatalkan, selesai, atau tidak tersedia lagi. Silakan refresh halaman pesanan.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
                         $record->update(['status' => 'completed']);
 
                         // Kirim email notifikasi ke pelanggan

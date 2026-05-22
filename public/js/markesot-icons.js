@@ -335,8 +335,9 @@ function oS2(){
   maxDate.setMinutes(maxDate.getMinutes() - maxDate.getTimezoneOffset());
   const maxDateTime = maxDate.toISOString().slice(0,16);
 
-  let h = `<div class="dp-banner"><div class="dp-ico">${paymentIcon('info')}</div><div class="dp-info"><h4>Kebijakan DP ${DP_PCT}%</h4><p>DP telah ditetapkan. Pelunasan saat pengambilan.</p></div><div class="dp-right"><div class="dp-num">${fmt(d)}</div><div class="dp-lbl">DP minimum</div></div></div>
-  <div class="form-section">
+  const dpPolicyHtml = `<div class="dp-banner"><div class="dp-ico">${paymentIcon('info')}</div><div class="dp-info"><h4>Kebijakan DP ${DP_PCT}%</h4><p>DP telah ditetapkan. Pelunasan saat pengambilan.</p></div><div class="dp-right"><div class="dp-num">${fmt(d)}</div><div class="dp-lbl">DP minimum</div></div></div>`;
+
+  let h = `<div class="form-section">
     <div class="form-section-label">Data Pemesan</div>
     <input type="text" id="custName" placeholder="Nama Lengkap (min. 3 karakter)" value="${cName}" oninput="cName=this.value;checkData()" class="cust-input">
     <input type="tel" id="custPhone" placeholder="No. Whatsapp (081234567890)" value="${cPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,'');cPhone=this.value;checkData()" class="cust-input" inputmode="numeric" pattern="[0-9]*">
@@ -370,8 +371,9 @@ function oS2(){
           <div style="font-size:0.7rem;color:#aaa;margin-top:0.15rem;">Pembayaran penuh lewat transfer</div>
         </div>
       </div>
+      ${!bankPayFull ? dpPolicyHtml : ""}
       <h4>Detail Rekening Bank</h4><div class="bank-line"><span class="bl-label">Bank</span><span class="bl-val" id="bankNameTxt">Loading...</span></div><div class="bank-line"><span class="bl-label">No. Rekening</span><span class="bl-val"><span id="bankAccTxt">Loading...</span> <button class="copy-btn" onclick="cp(document.getElementById('bankAccTxt').innerText)">Copy</button></span></div><div class="bank-line"><span class="bl-label">Atas Nama</span><span class="bl-val" id="bankHolderTxt">Loading...</span></div><div class="bank-line"><span class="bl-label">Nominal Transfer</span><span class="bl-val" style="color:var(--maroon);font-weight:800;">${fmt(payAmt)}</span></div></div>`;
-    h+=`<span class="upload-label">Upload Bukti Transfer</span><div class="upload-zone"><input type="file" accept=".png, .jpg, .jpeg, .heic, .webp, image/png, image/jpeg, image/heic, image/webp" id="paymentFile" onchange="handleFile(event)"/><div class="upload-ico"><span class="inline-icon" aria-hidden="true">UP</span></div><div class="upload-txt" id="uploadText">Klik atau seret foto bukti transfer</div><div class="upload-hint">JPG, PNG, HEIC — maks. 5MB</div><img class="preview-img ${uploaded?'show':''}" id="prevImg" ${uploaded?`src="${uploaded.previewExt}"`:''}/></div>`;
+    h+=`<span class="upload-label">Upload Bukti Transfer</span><div class="upload-zone"><input type="file" accept=".png, .jpg, .jpeg, .heic, .webp, image/png, image/jpeg, image/heic, image/webp" id="paymentFile" onchange="handleFile(event)"/><div class="upload-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 8.25H7.5A2.25 2.25 0 0 0 5.25 10.5v9A2.25 2.25 0 0 0 7.5 21.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15"></path><path d="M12 3v12"></path><path d="M9 6l3-3 3 3"></path></svg></div><div class="upload-txt" id="uploadText">Klik atau seret foto bukti transfer</div><div class="upload-hint">JPG, PNG, HEIC — maks. 5MB</div><img class="preview-img ${uploaded?'show':''}" id="prevImg" ${uploaded?`src="${uploaded.previewExt}"`:''}/></div>`;
   }
   let summaryBox = '';
   if (payMethod==='cash') {
