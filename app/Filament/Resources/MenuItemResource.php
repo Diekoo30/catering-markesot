@@ -18,6 +18,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Filament\Forms\Get;
 
 class MenuItemResource extends Resource
 {
@@ -38,7 +39,8 @@ class MenuItemResource extends Resource
                     ->relationship('category', 'name')
                     ->searchable()
                     ->preload()
-                    ->nullable(),
+                    ->nullable()
+                    ->live(),
 
                 TextInput::make('name')
                     ->label('Nama Menu')
@@ -89,6 +91,54 @@ class MenuItemResource extends Resource
                     ->label('Tersedia')
                     ->default(true),
             ])->columns(2),
+
+            Section::make('Skor AHP (Rekomendasi)')
+                ->visible(function ($get) {
+                    $categoryId = $get('category_id');
+                    if (!$categoryId) {
+                        return false;
+                    }
+                    $category = Category::find($categoryId);
+                    return $category ? (bool) $category->enable_ahp_recommendation : false;
+                })
+                ->schema([
+                    Select::make('skor_rasa')
+                        ->label('Skor Rasa')
+                        ->options([
+                            '1.0' => 'Rasa Ringan / Tidak Pedas (1.0)',
+                            '1.2' => 'Rasa Ringan / Gurih Ringan (1.2)',
+                            '1.4' => 'Gurih Segar / Sedikit Pedas (1.4)',
+                            '2.0' => 'Gurih Segar / Sedang (2.0)',
+                            '2.5' => 'Pedas Gurih / Cukup Kuat (2.5)',
+                            '3.0' => 'Pedas Kuat / Sangat Pedas (3.0)',
+                        ])
+                        ->default(1.0)
+                        ->required(),
+
+                    Select::make('skor_nutrisi')
+                        ->label('Skor Nutrisi')
+                        ->options([
+                            '1.0' => 'Dominan Karbohidrat / Gizi Ringan (1.0)',
+                            '2.0' => 'Protein Nabati & Telur / Gizi Sedang (2.0)',
+                            '2.2' => 'Protein Sedang (Telur & Sayur) (2.2)',
+                            '2.4' => 'Protein Tinggi (Ayam Kampung) (2.4)',
+                            '3.0' => 'Protein Sangat Tinggi (Daging Sapi) (3.0)',
+                        ])
+                        ->default(1.0)
+                        ->required(),
+
+                    Select::make('skor_jenis_hidangan')
+                        ->label('Skor Jenis Hidangan')
+                        ->options([
+                            '1.0' => 'Sajian Kuah Bening Ringan (1.0)',
+                            '1.5' => 'Sajian Kering / Gorengan (1.5)',
+                            '2.0' => 'Sajian Campuran / Basah / Nyemek (2.0)',
+                            '2.4' => 'Sajian Berkuah Hangat (2.4)',
+                            '3.0' => 'Kering Mutlak / Goreng Garing (3.0)',
+                        ])
+                        ->default(1.0)
+                        ->required(),
+                ])->columns(3),
         ]);
     }
 

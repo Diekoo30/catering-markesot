@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\FoodItem;
+use App\Models\MenuItem;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -164,10 +164,13 @@ class AHPService
         // ── 2. CR untuk laporan ──
         $consistency = $this->calculateConsistencyRatio($matrix, $weights);
 
-        // ── 3. Ambil semua menu dari database ──
-        $foodItems = FoodItem::all();
+        // ── 3. Ambil semua menu dari database (hanya yang tersedia & berkategori AHP aktif) ──
+        $menuItems = MenuItem::available()
+            ->whereHas('category', function ($query) {
+                $query->where('enable_ahp_recommendation', true);
+            })->get();
 
-        if ($foodItems->isEmpty()) {
+        if ($menuItems->isEmpty()) {
             return [
                 'success'     => true,
                 'data'        => collect([]),
@@ -178,7 +181,7 @@ class AHPService
         }
 
         // ── 4. Scoring: finalScore = Σ(bobot[i] × skor[i]) ──
-        $ranked = $foodItems->map(function (FoodItem $item) use ($weights) {
+        $ranked = $menuItems->map(function (MenuItem $item) use ($weights) {
             $scores     = $item->getSkorArray();
             $finalScore = 0.0;
 
@@ -188,9 +191,10 @@ class AHPService
 
             return [
                 'id'                  => $item->id,
-                'nama_menu'           => $item->nama_menu,
-                'harga'               => $item->harga,
-                'harga_format'        => 'Rp ' . number_format($item->harga, 0, ',', '.'),
+                'nama_menu'           => $item->name,
+                'harga'               => (int) $item->price,
+                'harga_format'        => 'Rp ' . number_format($item->price, 0, ',', '.'),
+                'image'               => $item->image ? asset('storage/' . $item->image) : null,
                 'skor_rasa'           => $item->skor_rasa,
                 'skor_nutrisi'        => $item->skor_nutrisi,
                 'skor_jenis_hidangan' => $item->skor_jenis_hidangan,

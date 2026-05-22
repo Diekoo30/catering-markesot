@@ -7,7 +7,8 @@ use App\Models\Category;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Set;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -38,7 +39,31 @@ class CategoryResource extends Resource
                 Toggle::make('is_active')
                     ->label('Aktif')
                     ->default(true),
-            ])->columns(2),
+
+                Toggle::make('enable_ahp_recommendation')
+                    ->label('Sistem Rekomendasi AHP')
+                    ->helperText('Aktifkan jika menu dalam kategori ini bisa direkomendasikan lewat AHP (opsional)')
+                    ->default(false)
+                    ->live()
+                    ->hidden(fn (Get $get): bool => (bool) $get('enable_cross_sell'))
+                    ->afterStateUpdated(function (Set $set, $state) {
+                        if ($state) {
+                            $set('enable_cross_sell', false);
+                        }
+                    }),
+
+                Toggle::make('enable_cross_sell')
+                    ->label('Rekomendasi Menu Pelengkap (Cross-selling)')
+                    ->helperText('Aktifkan jika menu dalam kategori ini disarankan sebagai menu pelengkap (opsional)')
+                    ->default(false)
+                    ->live()
+                    ->hidden(fn (Get $get): bool => (bool) $get('enable_ahp_recommendation'))
+                    ->afterStateUpdated(function (Set $set, $state) {
+                        if ($state) {
+                            $set('enable_ahp_recommendation', false);
+                        }
+                    }),
+            ])->columns(3),
         ]);
     }
 
@@ -65,6 +90,16 @@ class CategoryResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Aktif')
                     ->boolean(),
+
+                Tables\Columns\IconColumn::make('enable_ahp_recommendation')
+                    ->label('Rekomendasi AHP')
+                    ->boolean()
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('enable_cross_sell')
+                    ->label('Menu Pelengkap')
+                    ->boolean()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')

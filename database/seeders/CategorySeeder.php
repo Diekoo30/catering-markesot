@@ -27,7 +27,8 @@ class CategorySeeder extends Seeder
             $category->name = $cat['name'];
             $category->description = $cat['description'];
             $category->sort_order = $cat['sort_order'];
-            $category->slug = Str::slug($cat['name']); // Mengisi kolom slug otomatis (misal: "makanan-utama")
+            $category->enable_ahp_recommendation = ($cat['name'] === 'Makanan Utama');
+            $category->enable_cross_sell = in_array($cat['name'], ['Makanan Ringan', 'Minuman']);
             $category->is_active = true;
             
             // Simpan perubahan ke database

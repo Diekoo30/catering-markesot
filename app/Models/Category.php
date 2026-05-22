@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
-    protected $fillable = ['name','description','is_active','sort_order'];
+    protected $fillable = ['name','description','is_active','sort_order','enable_ahp_recommendation','enable_cross_sell'];
 
     protected $casts = [
         'is_active'  => 'boolean',
         'sort_order' => 'integer',
+        'enable_ahp_recommendation' => 'boolean',
+        'enable_cross_sell' => 'boolean',
     ];
 
     public function menuItems(): HasMany
