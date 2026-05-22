@@ -88,7 +88,8 @@ class MenuItemResource extends Resource
                     ->columnSpanFull(),
 
                 Toggle::make('is_available')
-                    ->label('Tersedia')
+                    ->label('Tersedia (untuk pemesanan)')
+                    ->helperText('Jika tidak diaktifkan, menu tidak akan ditampilkan di katalog serta tidak dipertimbangkan dalam perhitungan SPK.')
                     ->default(true),
             ])->columns(2),
 

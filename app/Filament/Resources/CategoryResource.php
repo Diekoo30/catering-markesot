@@ -37,12 +37,13 @@ class CategoryResource extends Resource
                     ->maxLength(255),
 
                 Toggle::make('is_active')
-                    ->label('Aktif')
+                    ->label('Tampilkan Kategori')
+                    ->helperText('Jika dimatikan, kategori ini tidak akan muncul di halaman publik dan tidak akan dipertimbangkan dalam rekomendasi SPK.')
                     ->default(true),
 
                 Toggle::make('enable_ahp_recommendation')
-                    ->label('Sistem Rekomendasi AHP')
-                    ->helperText('Aktifkan jika menu dalam kategori ini bisa direkomendasikan lewat AHP (opsional)')
+                    ->label('Gunakan dalam SPK')
+                    ->helperText('Jika diaktifkan, semua menu dalam kategori ini akan dipertimbangkan pada perhitungan SPK.')
                     ->default(false)
                     ->live()
                     ->hidden(fn (Get $get): bool => (bool) $get('enable_cross_sell'))
