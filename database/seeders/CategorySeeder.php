@@ -31,6 +31,10 @@ class CategorySeeder extends Seeder
             $category->enable_cross_sell = in_array($cat['name'], ['Makanan Ringan', 'Minuman']);
             $category->is_active = true;
             
+            if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'slug')) {
+                $category->slug = \Illuminate\Support\Str::slug($cat['name']);
+            }
+            
             // Simpan perubahan ke database
             $category->save();
         }

@@ -6,19 +6,21 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
         $this->call([
             AdminUserSeeder::class,   // 1 akun admin default
             SettingSeeder::class,     // Semua pengaturan sistem
             CategorySeeder::class,    // 5 kategori menu
-            MenuItemSeeder::class,    // 5 menu AHP asli Kantin Markesot
-            FoodItemSeeder::class,    // 5 menu AHP (Rasa|Nutrisi|Jenis Hidangan)
+            MenuItemSeeder::class,    // 7 menu asli Markesot (dengan skor AHP terintegrasi)
         ]);
 
         $this->command->info(str_repeat('-', 50));
         $this->command->info('
-    __  ___           __                     __ 
+    __  ___                                     __    
    /  |/  /___ ______/ /_____  _________  / /_
   / /|_/ / __ `/ ___/ //_/ _ \/ ___/ __ \/ __/
  / /  / / /_/ / /  / ,< /  __(__  ) /_/ / /_  

@@ -193,7 +193,7 @@ class AHPService
                 'id'                  => $item->id,
                 'nama_menu'           => $item->name,
                 'harga'               => (int) $item->price,
-                'harga_format'        => 'Rp ' . number_format($item->price, 0, ',', '.'),
+                'harga_format'        => 'Rp ' . number_format((int) $item->price, 0, ',', '.'),
                 'image'               => $item->image ? asset('storage/' . $item->image) : null,
                 'skor_rasa'           => $item->skor_rasa,
                 'skor_nutrisi'        => $item->skor_nutrisi,
@@ -207,8 +207,11 @@ class AHPService
             ];
         });
 
-        // ── 5. Urutkan DESC & hitung match_percentage ──
-        $sorted   = $ranked->sortByDesc('final_score')->values();
+        // ── 5. Urutkan DESC berdasarkan skor akhir, lalu berdasarkan nama menu (DESC) jika skor sama (tie-breaker) ──
+        $sorted   = $ranked->sortBy([
+            ['final_score', 'desc'],
+            ['nama_menu', 'desc'],
+        ])->values();
         $maxScore = $sorted->first()['final_score'] ?? 1;
 
         $result = $sorted->map(function ($item) use ($maxScore) {

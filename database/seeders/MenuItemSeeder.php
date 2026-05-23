@@ -11,16 +11,16 @@ use Illuminate\Support\Str;
  * MenuItemSeeder — Data menu asli Kantin Markesot Universitas Jember
  *
  * Skor AHP per menu (skala 1.0–3.0):
- *   skor_rasa           : 1.0=Tidak Pedas | 1.4=Agak Gurih | 2.5=Pedas Gurih | 3.0=Pedas Kuat
- *   skor_nutrisi        : 1.0=Dominan Karbo | 2.2=Telur+Sayur | 2.4=Ayam | 3.0=Sapi
- *   skor_jenis_hidangan : 1.0=Kuah Ringan | 1.5=Goreng Standar | 2.0=Kuah Rempah | 2.4=Kuah Hangat | 3.0=Kering Mutlak
+ *   skor_rasa           : 1.0=Segar/Tidak Pedas | 2.0=Agak Pedas | 3.0=Pedas Kuat
+ *   skor_nutrisi        : 1.0=Karbo | 2.0=Ada Telur | 2.5=Ada Ayam | 3.0=Ada Sapi
+ *   skor_jenis_hidangan : 1.5=Goreng/Kering | 2.5=Kuah Ringan | 3.0=Kuah Kaya/Berkuah Pekat
  *
- * Strategi skor (dikalibrasi: semua 27 kombinasi diuji, setiap menu bisa #1):
- *   Nasi Goreng        → RAJA KERING (jenis=3.0) — menang saat user prioritas jenis hidangan
- *   Mie Dok Dok Kuah   → BALANCED KUAH (nutrisi=2.2, jenis=2.4) — menang saat nutrisi+jenis seimbang
- *   Mie Dok Dok Goreng → RAJA PEDAS (rasa=3.0) — menang saat user prioritas rasa
- *   Soto Ayam Kampung  → COMBO RASA+GIZI (rasa=2.5, nutrisi=2.4) — menang saat rasa+nutrisi
- *   Rawon              → RAJA GIZI (nutrisi=3.0) — menang saat user prioritas nutrisi
+ * Strategi skor — setiap menu bisa unggul di skenario berbeda:
+ *   Nasi Goreng        → menang jika Rasa & Kering dominan (R-N: kiri, R-J: kiri, N-J: sama/kiri)
+ *   Mie Dok Dok Kuah   → menang jika Kuah sangat dominan (R-J: kanan, N-J: kanan)
+ *   Mie Dok Dok Goreng → menang jika Rasa pedas sangat dominan & Kering (R-N: kiri, R-J: kiri, N-J: kanan)
+ *   Soto Ayam Kampung  → menang jika nutrisi ayam + kuah ringan seimbang (Skenario standar/balanced)
+ *   Rawon              → menang jika Nutrisi sapi sangat dominan (R-N: kanan, N-J: kiri)
  */
 class MenuItemSeeder extends Seeder
 {
@@ -36,16 +36,15 @@ class MenuItemSeeder extends Seeder
 
         $items = [
             // ═══ MAKANAN UTAMA — 5 Menu Andalan Markesot ═══
-            // Skor telah dikalibrasi agar setiap menu bisa menjadi #1 (27 kombinasi diuji)
             [
                 'category_id'         => $catMain,
                 'name'                => 'Nasi Goreng',
                 'price'               => 10000,
                 'is_featured'         => true,
                 'description'         => 'Aromatik, gurih pedas, bikin nambah terus!',
-                'skor_rasa'           => 1.2,  // Rasa: gurih ringan, tidak pedas
-                'skor_nutrisi'        => 1.0,  // Nutrisi: dominan karbo
-                'skor_jenis_hidangan' => 3.0,  // Jenis: RAJA KERING — menang saat user prioritas jenis hidangan
+                'skor_rasa'           => 2.5,  // Rasa: Gurih, rasa pedas & rempah harum seimbang
+                'skor_nutrisi'        => 1.6,  // Nutrisi: Karbo nasi dengan telur, gizi sedang-rendah
+                'skor_jenis_hidangan' => 1.8,  // Jenis: Hidangan kering/goreng terpopuler (skala 1.5-1.8)
                 'notes'               => [
                     'emoji'   => '🍳',
                     'harga'   => 5,
@@ -61,9 +60,9 @@ class MenuItemSeeder extends Seeder
                 'price'               => 12000,
                 'is_featured'         => true,
                 'description'         => 'Mie kuah hangat khas abang-abang malam.',
-                'skor_rasa'           => 1.4,  // Rasa: kuah gurih, sedikit pedas
-                'skor_nutrisi'        => 2.2,  // Nutrisi: kuah bergizi (telur+sayur)
-                'skor_jenis_hidangan' => 2.4,  // Jenis: kuah hangat, skor tinggi
+                'skor_rasa'           => 1.5,  // Rasa: Agak pedas gurih sedang, kuah melarutkan pedasnya
+                'skor_nutrisi'        => 1.5,  // Nutrisi: Karbo mie instan dengan tambahan telur dan sawi
+                'skor_jenis_hidangan' => 3.0,  // Jenis: Mutlak Unggul Kuah (kuah pekat hangat melimpah)
                 'notes'               => [
                     'emoji'   => '🍜',
                     'harga'   => 4,
@@ -79,9 +78,9 @@ class MenuItemSeeder extends Seeder
                 'price'               => 12000,
                 'is_featured'         => true,
                 'description'         => 'Mie goreng rumahan, pedas gurih mantap.',
-                'skor_rasa'           => 3.0,  // Rasa: RAJA PEDAS — menang saat user prioritas rasa
-                'skor_nutrisi'        => 1.0,  // Nutrisi: dominan karbo
-                'skor_jenis_hidangan' => 1.5,  // Jenis: goreng standar
+                'skor_rasa'           => 2.8,  // Rasa: Mutlak Unggul Rasa (pedas mantap & gurih pekat meresap)
+                'skor_nutrisi'        => 1.0,  // Nutrisi: Karbohidrat dominan mie instan goreng
+                'skor_jenis_hidangan' => 1.5,  // Jenis: Hidangan kering/goreng
                 'notes'               => [
                     'emoji'   => '🍝',
                     'harga'   => 4,
@@ -97,9 +96,9 @@ class MenuItemSeeder extends Seeder
                 'price'               => 12000,
                 'is_featured'         => true,
                 'description'         => 'Kuah bening hangat, ayam kampung empuk.',
-                'skor_rasa'           => 2.5,  // Rasa: gurih pedas khas soto
-                'skor_nutrisi'        => 2.4,  // Nutrisi: ayam kampung, cukup bergizi
-                'skor_jenis_hidangan' => 1.0,  // Jenis: kuah bening ringan
+                'skor_rasa'           => 1.8,  // Rasa: Gurih segar alami kaldu ayam, tidak pedas
+                'skor_nutrisi'        => 2.2,  // Nutrisi: Protein tinggi & sehat dari suwiran daging ayam kampung
+                'skor_jenis_hidangan' => 2.5,  // Jenis: Hidangan kuah ringan menyegarkan
                 'notes'               => [
                     'emoji'   => '🥣',
                     'harga'   => 4,
@@ -115,9 +114,9 @@ class MenuItemSeeder extends Seeder
                 'price'               => 13000,
                 'is_featured'         => true,
                 'description'         => 'Kuah hitam kluwek khas Jawa Timur, daging sapi empuk, tauge, dan telur asin.',
-                'skor_rasa'           => 1.0,  // Rasa: gurih khas kluwek, tidak pedas
-                'skor_nutrisi'        => 3.0,  // Nutrisi: RAJA GIZI (sapi) — menang saat user prioritas nutrisi
-                'skor_jenis_hidangan' => 2.0,  // Jenis: kuah kaya rempah
+                'skor_rasa'           => 1.0,  // Rasa: Gurih khas kluwek, tidak pedas sama sekali
+                'skor_nutrisi'        => 3.0,  // Nutrisi: Mutlak Unggul Gizi (protein tinggi & zat besi dari daging sapi, tauge, telur asin)
+                'skor_jenis_hidangan' => 2.0,  // Jenis: Hidangan berkuah pekat kluwek
                 'notes'               => [
                     'emoji'   => '🥩',
                     'harga'   => 4,
@@ -177,6 +176,7 @@ class MenuItemSeeder extends Seeder
                 ['name' => $item['name']],
                 [
                     'category_id'         => $item['category_id'],
+                    'slug'                => Str::slug($item['name']),
                     'price'               => $item['price'],
                     'description'         => $item['description'],
                     'unit'                => 'porsi',
