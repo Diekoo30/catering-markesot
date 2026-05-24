@@ -878,6 +878,12 @@ function closeNewsDetail() {
       <div class="dss-sparkle" style="display:flex;align-items:center;justify-content:center;background:white;color:var(--gold);border-radius:50%;width:24px;height:24px;"><svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></svg></div> Masih bingung? Coba rekomendasi
     </button>
   </div>
+  <div style="margin-top:1.5rem;display:flex;justify-content:center;position:relative;">
+    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $companyPhone) }}" target="_blank" style="background:#25D366;color:white;padding:0.75rem 1.8rem;border-radius:50px;text-decoration:none;display:inline-flex;align-items:center;gap:0.6rem;font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;box-shadow:0 6px 20px rgba(37,211,102,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 28px rgba(37,211,102,0.55)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(37,211,102,0.4)'">
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+      {{ $companyPhone }}
+    </a>
+  </div>
 </section>
 
 <footer class="footer" style="padding: 3rem max(1.5rem, 5vw); background:#fff; border-top:1px solid #eee; display:flex; flex-direction:column; gap:2rem;">
@@ -954,7 +960,7 @@ function closeNewsDetail() {
     <div class="dss-progress-wrap" id="dssProgressWrap">
       <div class="dss-prog-header">
         <div class="dss-prog-label" id="dssPLabel">Yuk Mulai!</div>
-        <div class="dss-prog-step" id="dssPStep">0 dari 10</div>
+        <div class="dss-prog-step" id="dssPStep">0 dari 3</div>
       </div>
       <div class="dss-prog-track"><div class="dss-prog-fill" id="dssPFill" style="width:0%"></div></div>
       <div class="dss-prog-dots" id="dssPDots"></div>
@@ -1015,6 +1021,6 @@ function closeNewsDetail() {
   window.GOOGLE_LOGIN_URL = "{{ route('google.login') }}";
   window.OP_HOURS = {!! json_encode($opHours) !!};
 </script>
-<script src="{{ asset('js/markesot-icons.js') }}?v={{ filemtime(public_path('js/markesot-icons.js')) }}"></script>
+<script src="{{ asset('js/markesot.js') }}?v={{ filemtime(public_path('js/markesot.js')) }}"></script>
 </body>
 </html>

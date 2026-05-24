@@ -48,6 +48,11 @@ class LandingController extends Controller
                 'desc'    => $q->description   ?? 'Nikmati hidangan lezat dan segar...',
                 'image'   => $q->image ? asset('storage/' . $q->image) : null,
                 'is_best_seller' => in_array($q->id, $bestSellerIds),
+                'skor_rasa'      => $q->skor_rasa,
+                'skor_nutrisi'   => $q->skor_nutrisi,
+                'skor_jenis_hidangan' => $q->skor_jenis_hidangan,
+                'cat_enable_ahp' => $q->category?->enable_ahp_recommendation ?? false,
+                'cat_enable_cross_sell' => $q->category?->enable_cross_sell ?? false,
             ];
         })->sortBy('cat_sort_order')->values();
 

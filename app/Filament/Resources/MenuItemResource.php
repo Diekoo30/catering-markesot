@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -88,9 +89,54 @@ class MenuItemResource extends Resource
                     ->columnSpanFull(),
 
                 Toggle::make('is_available')
-                    ->label('Tersedia')
+                    ->label('Tersedia (untuk pemesanan)')
+                    ->helperText('Jika tidak diaktifkan, menu tidak akan ditampilkan di katalog serta tidak dipertimbangkan dalam perhitungan SPK.')
                     ->default(true),
             ])->columns(2),
+
+            Section::make('Kriteria AHP — Skor Rekomendasi Menu')
+                ->description('Atur skor untuk setiap kriteria AHP (skala 1.0 - 3.0). Skor ini menentukan menu ini muncul di rekomendasi "Bingung mau makan apa?" sesuai preferensi pelanggan.')
+                ->visible(function (Get $get) {
+                    $categoryId = $get("category_id");
+                    if (! $categoryId) {
+                        return false;
+                    }
+
+                    $category = Category::find($categoryId);
+
+                    return $category ? (bool) $category->enable_ahp_recommendation : false;
+                })
+                ->schema([
+                    TextInput::make('skor_rasa')
+                        ->label('Skor Rasa')
+                        ->numeric()
+                        ->default(1.5)
+                        ->minValue(1.0)
+                        ->maxValue(3.0)
+                        ->step(0.1)
+                        ->required()
+                        ->helperText('1.0 = Tidak Pedas/Segar | 2.0 = Agak Pedas | 3.0 = Pedas Kuat'),
+
+                    TextInput::make('skor_nutrisi')
+                        ->label('Skor Nutrisi')
+                        ->numeric()
+                        ->default(1.5)
+                        ->minValue(1.0)
+                        ->maxValue(3.0)
+                        ->step(0.1)
+                        ->required()
+                        ->helperText('1.0 = Karbo saja | 2.0 = Ada Telur | 2.6 = Ada Ayam | 3.0 = Ada Daging Sapi'),
+
+                    TextInput::make('skor_jenis_hidangan')
+                        ->label('Skor Jenis Hidangan')
+                        ->numeric()
+                        ->default(1.5)
+                        ->minValue(1.0)
+                        ->maxValue(3.0)
+                        ->step(0.1)
+                        ->required()
+                        ->helperText('1.5 = Goreng/Kering | 2.5 = Kuah Ringan | 3.0 = Kuah Kaya Rempah'),
+                ])->columns(3),
         ]);
     }
 

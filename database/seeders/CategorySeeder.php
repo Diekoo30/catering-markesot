@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str; // Baris baru: Ditambahkan agar fungsi Str::slug() bisa terbaca
 
 class CategorySeeder extends Seeder
 {
@@ -17,11 +18,26 @@ class CategorySeeder extends Seeder
             ['name' => 'Paket Catering', 'description' => 'Paket lengkap catering untuk berbagai acara dan jumlah porsi',   'unit' => 'paket', 'sort_order' => 5],
         ];
 
+        // --- BAGIAN INI YANG DIUBAH TOTAL ---
         foreach ($categories as $cat) {
-            Category::updateOrCreate(
-                ['name' => $cat['name']],
-                array_merge($cat, ['is_active' => true])
-            );
+            // Cari data kategori berdasarkan nama, jika tidak ada maka buat instansiasi objek baru
+            $category = Category::where('name', $cat['name'])->first() ?: new Category();
+            
+            // Set nilai properti satu per satu agar lolos dari proteksi Mass Assignment / fillable
+            $category->name = $cat['name'];
+            $category->description = $cat['description'];
+            $category->sort_order = $cat['sort_order'];
+            $category->enable_ahp_recommendation = ($cat['name'] === 'Makanan Utama');
+            $category->enable_cross_sell = in_array($cat['name'], ['Makanan Ringan', 'Minuman']);
+            $category->is_active = true;
+            
+            if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'slug')) {
+                $category->slug = \Illuminate\Support\Str::slug($cat['name']);
+            }
+            
+            // Simpan perubahan ke database
+            $category->save();
         }
+        // ------------------------------------
     }
 }
